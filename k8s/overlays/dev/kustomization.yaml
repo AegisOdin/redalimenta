@@ -1,0 +1,26 @@
+# Desarrollo: 1 réplica por capa, escalado manual, controles básicos, datos sintéticos modificables.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: redalimenta
+resources:
+  - ../../base
+  - ambiente.yaml
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals: [APP_ENV=dev, DIAG_REPLICA=true]
+replacements:
+  - source: {kind: ConfigMap, name: ambiente, fieldPath: data.HOSTNAME}
+    targets:
+      - select: {kind: Certificate, name: redalimenta-tls}
+        fieldPaths: [spec.dnsNames.0]
+      - select: {kind: Gateway}
+        fieldPaths: [spec.listeners.0.hostname, spec.listeners.1.hostname]
+      - select: {kind: HTTPRoute}
+        fieldPaths: [spec.hostnames.0]
+# Digests escritos por scripts/promover.sh (trazabilidad: el commit indica qué artefacto corre)
+images:
+  - name: k3d-ra-registry.localhost:5050/redalimenta-backend
+    digest: sha256:3a862c988a485498e8103f325c8690e4bd850cb459f1b6bd244fdde97557c2f2
+  - name: k3d-ra-registry.localhost:5050/redalimenta-frontend
+    digest: sha256:bf54d51d36e8b20bcc05aa4b90c3b84aaf6b4cb973284077db9a731ee3cae15e

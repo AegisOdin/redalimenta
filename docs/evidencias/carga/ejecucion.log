@@ -1,0 +1,14 @@
+[14:27:54] con-hpa: línea base 5 min
+[14:32:55] con-hpa: rampa 12 min
+[14:44:56] con-hpa: enfriamiento (ventana de estabilización 180 s + reducción 1 pod/min)
+[14:48:28] con-hpa: fin
+horizontalpodautoscaler.autoscaling "backend" deleted from redalimenta namespace
+deployment.apps/backend scaled
+deployment "backend" successfully rolled out
+[14:48:28] sin-hpa: línea base 5 min
+[14:53:29] sin-hpa: rampa 12 min
+[15:05:31] sin-hpa: enfriamiento (ventana de estabilización 180 s + reducción 1 pod/min)
+[15:09:02] sin-hpa: fin
+HPA restaurado
+NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+backend   Deployment/backend   cpu: 2%/60%   2         6         2          0s

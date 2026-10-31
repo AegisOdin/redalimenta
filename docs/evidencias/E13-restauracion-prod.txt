@@ -1,0 +1,28 @@
+[0s] integridad sha256 verificada
+[72s] motores temporales listos
+[73s] PostgreSQL restaurado
+[75s] MongoDB restaurado
+== Conteos esperados (tomados al respaldar)
+postgres: { "usuarios" : 9, "donantes" : 12, "productos" : 25, "lotes" : 165, "hogares" : 123, "despensas" : 87, "despensa_detalle" : 214, "outbox" : 827 }
+mongo:    {"expediente_lote":166,"bitacora_eventos":827}
+== Conteos restaurados
+postgres: { "usuarios" : 9, "donantes" : 12, "productos" : 25, "lotes" : 165, "hogares" : 123, "despensas" : 87, "despensa_detalle" : 214, "outbox" : 827 }
+mongo:    {"expediente_lote":166,"bitacora_eventos":827}
+CONTEOS: COINCIDEN
+== Relaciones, restricciones e índices restaurados
+  constraint c|14
+  constraint f|10
+  constraint n|64
+  constraint p|10
+  constraint u|8
+  28 índices
+  huérfanos detalle->lote: 0
+  registro S-00001: S-00001 disponible 46
+  índices mongo: [  '_id_',  'ix_folio_tipo',  'ix_tipo_ts',  'ux_event_id',  'ix_hogar_ts'][  '_id_',  'ux_folio_lote',  'ix_eventos_hogar',  'ix_eventos_event_id']
+== La aplicación funciona con los datos restaurados
+  login: 200
+  GET /api/lotes total = 165 primero = S-00100
+  expediente S-00001 eventos = 2
+[78s] RTO medido: aplicación respondiendo con datos restaurados
+RTO_SEGUNDOS=78
+Para limpiar: kubectl --context k3d-ra-prod delete ns restauracion

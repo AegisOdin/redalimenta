@@ -1,0 +1,26 @@
+digraph red {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=13, labelloc=t, label="Arquitectura de comunicación — redes, direcciones, CIDR, DNS y controles", bgcolor=white, pad=0.3, nodesep=0.3];
+  node [shape=box, style="rounded,filled", fillcolor="#ffffff", fontname="DejaVu Sans", fontsize=10, color="#5d6b64"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#5d6b64"];
+  inet [label="Internet", shape=oval]; router [label="Router LAN 192.168.1.1\nNAT · DNS recursivo"];
+  dns [label="DNS comodín sslip.io\nredalimenta-dev.172-30-0-200 → 172.30.0.200\nredalimenta.172-31-0-200 → 172.31.0.200", shape=note];
+  subgraph cluster_host { label="Host Ubuntu · wlo1 192.168.1.19/24 · enrutamiento y NAT de Docker (salida a Internet)"; style="rounded"; color="#333333";
+    adm [label="Red de administración = 127.0.0.1\nAPI dev :6551 · API prod :6552 · registro :5050\nGrafana :3000 · Prometheus :9090 · Alertmanager :9093 (port-forward)", fillcolor="#fff3d6"];
+    subgraph cluster_dev { label="bridge ra-dev-net 172.30.0.0/24 (gw .1)"; style="rounded,filled"; fillcolor="#f6f8f7";
+      d1 [label="nodo dev 172.30.0.3\nPods 10.42.0.0/16 · Services 10.43.0.0/16\nDNS 10.43.0.10"]; dlb [label="serverlb 172.30.0.4"];
+      dvip [label="MetalLB 172.30.0.200-210\nTraefik 172.30.0.200:80/443", fillcolor="#e5effb"];
+    }
+    subgraph cluster_prod { label="bridge ra-prod-net 172.31.0.0/24 (gw .1)"; style="rounded,filled"; fillcolor="#f6f8f7";
+      p0 [label="server 172.31.0.3"]; p1 [label="agent-1 172.31.0.5"]; p2 [label="agent-0 172.31.0.4"]; plb [label="serverlb 172.31.0.6"];
+      pvip [label="MetalLB 172.31.0.200-210\nTraefik 172.31.0.200:80/443", fillcolor="#e5effb"];
+      ppod [label="Pods 10.52.0.0/16 (Calico VXLAN UDP 4789 entre nodos)\nServices 10.53.0.0/16 · DNS 10.53.0.10", shape=note];
+    }
+  }
+  fw [label="Firewall de host RA-FW (iptables en cada nodo)\n1 establecidas · 2 loopback · 3 interfaces de Pods (cali+, vxlan.calico)\n4 VXLAN 4789/udp solo entre nodos\n5 6443, 6444, 10250, 7946, 9100, 9099 solo entre nodos\n6 6443 solo desde serverlb · 7 Pods → kubelet/node-exporter\n99 resto DROP · mangle: NodePort 30000-32767 cerrado a externos", shape=note, fillcolor="#fde7e4"];
+  np [label="NetworkPolicy (Calico) en redalimenta\ndefault-deny ingress + egress · DNS 53 UDP/TCP\ntraefik → frontend:8080 / backend:8000\napi·worker·migraciones·tareas → postgres:5432, mongo:27017\nrespaldos → BD · monitoring → métricas 8000/9100/9187/9216", shape=note, fillcolor="#e8f3ed"];
+  inet -> router -> adm [dir=both, label="NAT"]; dns -> router [style=dashed];
+  adm -> dlb [label="6443"]; adm -> plb [label="6443"]; dlb -> d1; plb -> p0;
+  adm -> dvip [label="HTTPS 443"]; adm -> pvip [label="HTTPS 443"];
+  pvip -> p1; pvip -> p2; p0 -> p1 [dir=both, label="VXLAN/kubelet"]; p1 -> p2 [dir=both];
+  fw -> p0 [style=dotted, arrowhead=none]; np -> ppod [style=dotted, arrowhead=none];
+}

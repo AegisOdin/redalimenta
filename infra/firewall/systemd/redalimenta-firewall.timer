@@ -1,0 +1,7 @@
+[Unit]
+Description=RedAlimenta: verificar firewall de nodos cada minuto
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=60s
+[Install]
+WantedBy=timers.target

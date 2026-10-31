@@ -1,0 +1,13 @@
+# E07 Balanceo 2026-10-31T20:25:55Z — DIAG_REPLICA activado solo durante la prueba
+== Réplicas backend y nodo
+backend-5684f657db-lp6gh   k3d-ra-prod-agent-1   10.52.147.33
+backend-5684f657db-nfqst   k3d-ra-prod-agent-0   10.52.3.23
+== 100 solicitudes HTTPS, conexión nueva cada una (MetalLB -> Traefik -> réplicas)
+     50 backend-5684f657db-lp6gh
+     50 backend-5684f657db-nfqst
+== Identificador retirado: HTTP 404 (404 esperado)
+== Distribución entre workers (topologySpreadConstraints maxSkew=1)
+backend-674bd556db-8l944    k3d-ra-prod-agent-0
+frontend-69969587b9-k6lgd   k3d-ra-prod-agent-0
+backend-674bd556db-ltnh5    k3d-ra-prod-agent-1
+frontend-69969587b9-56pgl   k3d-ra-prod-agent-1

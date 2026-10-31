@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor V as Voluntario
+  participant B as Backend
+  participant P as PostgreSQL (fuente de verdad)
+  participant W as Worker outbox
+  participant M as MongoDB (expediente)
+  V->>B: POST /api/despensas/{id}/transicion/entregada
+  B->>P: BEGIN · UPDATE despensa=entregada · hogar.ultima_entrega=hoy<br/>INSERT outbox(lote_entregado, event_id=uuid) x lote · COMMIT
+  B-->>V: 200 Entregada (no espera a MongoDB)
+  loop cada 1 s
+    W->>P: SELECT … FROM outbox WHERE publicado_en IS NULL ORDER BY id FOR UPDATE SKIP LOCKED
+    alt MongoDB disponible
+      W->>M: insert bitacora_eventos (índice único event_id)
+      W->>M: update expediente_lote {event_id ∉ eventos} $push evento, $addToSet hogar (upsert)
+      W->>P: UPDATE outbox SET publicado_en=now() · COMMIT
+    else MongoDB caído / timeout
+      W->>P: intentos+1, ultimo_error · COMMIT (evento sigue pendiente)
+      W->>W: backoff exponencial 1→30 s · alerta OutboxAtrasado si > 50 pendientes 5 min
+    end
+  end
+  Note over W,M: Reintento idempotente: si el COMMIT final falló tras escribir en MongoDB,<br/>el evento se reaplica y DuplicateKey / filtro event_id evitan duplicados.
+  Note over P,M: Recuperación tras restaurar MongoDB: tasks reproyectar <fecha> marca eventos<br/>posteriores como pendientes y el worker los vuelve a aplicar sin duplicar.

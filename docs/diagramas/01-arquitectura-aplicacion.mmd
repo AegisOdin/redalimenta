@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph Actores
+    A1([Administrador]); A2([Coordinador de almacén]); A3([Trabajador social]); A4([Voluntario de entrega])
+  end
+  NAV["Navegador<br/>SPA React + Vite"]
+  A1 & A2 & A3 & A4 --> NAV
+  NAV -- "HTTPS 443 · GET / (estáticos)" --> FE["Frontend<br/>Nginx no root :8080"]
+  NAV -- "HTTPS 443 · /api/* JSON<br/>cookie HttpOnly + X-CSRF-Token" --> API
+  subgraph API["Backend FastAPI (modular, sin estado) :8000"]
+    AUTH["Autenticación y usuarios<br/>Argon2id · JWT en cookie · límite de intentos"]
+    REC["Recepción e inspección<br/>cadena de frío"]
+    INV["Inventario<br/>FEFO · Prioritario/Merma"]
+    HOG["Hogares<br/>elegibilidad 14 días · alérgenos"]
+    DES["Despensas<br/>flujo de estados"]
+    TRA["Trazabilidad<br/>retiro sanitario"]
+    REP["Reportes"]
+  end
+  API -- "SQL/TLS 5432 · SQLAlchemy<br/>transacción + SELECT … FOR UPDATE" --> PG[("PostgreSQL 18<br/>fuente de verdad<br/>+ tabla outbox")]
+  TRA -- "lecturas 27017/TLS<br/>PyMongo" --> MG[("MongoDB 9<br/>expediente_lote · bitacora_eventos")]
+  OB["Worker outbox<br/>(Deployment)"] -- "lee eventos pendientes<br/>FOR UPDATE SKIP LOCKED" --> PG
+  OB -- "upsert idempotente por event_id" --> MG
+  CJ["CronJob tarea diaria<br/>caducidades · no recogidas 72 h"] --> PG
+  BK["CronJob respaldo<br/>pg_dump + mongodump cifrados"] --> PG & MG

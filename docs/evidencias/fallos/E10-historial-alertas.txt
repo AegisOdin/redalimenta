@@ -1,0 +1,12 @@
+AplicacionIndisponible firing 15:37:40–15:38:10
+AplicacionIndisponible pending 15:36:40–15:37:25
+BaseDeDatosCaida firing 15:37:10–15:37:55 ; 15:40:40–15:46:10 ; 16:04:40–16:10:10
+BaseDeDatosCaida pending 15:36:10–15:37:25 ; 15:39:40–15:40:40 ; 16:03:40–16:04:40
+OutboxAtrasado firing 16:09:10–16:10:25
+OutboxAtrasado pending 16:04:10–16:08:55
+PodsPendientes pending 15:35:55–15:35:55 ; 15:45:55–15:45:55
+RespaldoFallido firing 15:36:55–15:39:10
+SaturacionDeRecursos firing 15:21:10–15:29:40
+SaturacionDeRecursos pending 15:18:10–15:20:55
+TasaDeErroresElevada firing 15:37:55–15:39:40
+TasaDeErroresElevada pending 15:36:55–15:37:40

@@ -1,0 +1,7 @@
+# Sesión expirada (prod) 2026-10-31T22:31:13Z
+token vencido hace 1 min  -> {"detail":"Sesión expirada"} HTTP 401
+token vigente (control)   -> HTTP 200
+duración configurada de la sesión: 30 min (cookie Max-Age y claim exp)
+cabecera Set-Cookie del login (atributos):
+set-cookie: ra_session=<oculto>; HttpOnly; Max-Age=1800; Path=/; SameSite=strict; Secure
+set-cookie: ra_csrf=<oculto>; Max-Age=1800; Path=/; SameSite=strict; Secure

@@ -1,0 +1,18 @@
+[15:36:17 +3s] Reinicios backend antes: backend-6879cc4857-bb26c=0 backend-6879cc4857-vpx28=0 
+[15:36:17 +3s] Simulo indisponibilidad: scale statefulset/postgres --replicas=0
+statefulset.apps/postgres scaled
+[15:36:32 +18s] Respuesta de la API con PostgreSQL caído:
+    no available server
+
+[15:36:32 +18s] Endpoints listos del Service backend: false false 
+    (readiness retira las réplicas; liveness NO las reinicia)
+[15:36:32 +18s] Lanzo un respaldo mientras la BD está caída (debe fallar y disparar RespaldoFallido)
+job.batch/respaldo-durante-caida created
+[15:37:48 +94s] Reinicios backend durante la caída: backend-6879cc4857-bb26c=0 backend-6879cc4857-vpx28=0 
+[15:37:48 +94s] Restablezco PostgreSQL
+statefulset.apps/postgres scaled
+[15:37:58 +104s] Backend Ready otra vez. Reinicios después: backend-6879cc4857-bb26c=0 backend-6879cc4857-vpx28=0 
+[15:37:58 +104s] Estado del Job de respaldo: 2 fallido(s)
+== Impacto en solicitudes (sonda cada 0.25 s)
+solicitudes=417 correctas=48 fallidas=369 (88.49%) p95_ok=87 ms
+primer error 15:36:17 (HTTP 503), último error 15:37:57, ventana con errores=99.3 s, códigos=['503']

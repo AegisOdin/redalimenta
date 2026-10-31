@@ -1,0 +1,28 @@
+# 2026-10-31T20:48:17Z
+== dev: https://redalimenta-dev.172-30-0-200.sslip.io -> {"version":"1.1.0","ambiente":"dev"}
+   subject=
+   issuer=CN=RedAlimenta Lab CA (dev)
+   Verify return code: 0 (ok)
+       Verify return code: 0 (ok)
+== prod: https://redalimenta.172-31-0-200.sslip.io -> {"version":"1.0.0","ambiente":"prod"}
+   subject=
+   issuer=CN=RedAlimenta Lab CA (prod)
+   Verify return code: 0 (ok)
+       Verify return code: 0 (ok)
+== El certificado de prod NO es válido con la CA de dev: 000 (000 = verificación TLS fallida)
+== Datos independientes: se crea un hogar solo en dev
+   creado IND-144817 en dev
+   dev: hogares con clave IND-144817 = 1 · total hogares = 127
+   prod: hogares con clave IND-144817 = 0 · total hogares = 123
+== Credenciales distintas (huella SHA-256 truncada del secreto de sesión, sin revelarlo)
+   dev: 6f0c15547b0a
+   prod: 4bfa0b7ca32b
+== Volúmenes distintos
+   dev:
+     datos-mongo-0      pvc-6035c089-31cc-4489-a30f-acff246944ab   2Gi
+     datos-postgres-0   pvc-e5f93308-f4b2-485b-a8e6-f25131b80665   2Gi
+     respaldos          pvc-8a5eae86-77ef-4344-820b-8c4b12eae292   5Gi
+   prod:
+     datos-mongo-0      pvc-002089b0-3d18-4925-9ebb-762581e4e41f   5Gi
+     datos-postgres-0   pvc-494a3137-d380-4b21-a3ce-e3960de37371   5Gi
+     respaldos          pvc-7946f9f8-352a-428f-bac7-01d6cbc6022a   5Gi

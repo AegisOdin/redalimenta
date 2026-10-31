@@ -1,0 +1,17 @@
+# Rango de IP externas del ambiente dev (dentro de la red Docker del clúster, fuera del rango DHCP de Docker)
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: pool-dev
+  namespace: metallb-system
+spec:
+  addresses: ["172.30.0.200-172.30.0.210"]
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-dev
+  namespace: metallb-system
+spec:
+  ipAddressPools: ["pool-dev"]

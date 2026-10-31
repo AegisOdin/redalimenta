@@ -1,0 +1,4 @@
+[15:09:24] con-hpa-v2: línea base 5 min
+[15:14:25] con-hpa-v2: rampa 12 min
+[15:26:27] con-hpa-v2: enfriamiento (ventana de estabilización 180 s + reducción 1 pod/min)
+[15:33:00] con-hpa-v2: fin

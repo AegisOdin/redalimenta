@@ -1,0 +1,52 @@
+[16:01:41 +3s] Antes del mantenimiento (k3d-ra-prod-agent-1 aloja mongo-0 con volumen local):
+    backend-66ddf79494-948lp Running k3d-ra-prod-agent-0
+    backend-66ddf79494-tvsgh Running k3d-ra-prod-agent-1
+    frontend-54579c8f5-fgp2g Running k3d-ra-prod-agent-0
+    frontend-54579c8f5-nmfhh Running k3d-ra-prod-agent-1
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Running k3d-ra-prod-agent-1
+    mongodb-exporter-68ff85dbff-wph8z Running k3d-ra-prod-agent-0
+    outbox-77b5db9f88-4zf92 Running k3d-ra-prod-agent-0
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-2jnjz Running k3d-ra-prod-agent-0
+NAME       MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+backend    1               N/A               1                     109m
+frontend   1               N/A               1                     109m
+[16:01:42 +4s] kubectl drain k3d-ra-prod-agent-1 --ignore-daemonsets --delete-emptydir-data (sin --force; respeta PDB)
+    node/k3d-ra-prod-agent-1 cordoned
+    node/k3d-ra-prod-agent-1 drained
+[16:01:50 +12s] Durante el mantenimiento:
+    backend-66ddf79494-948lp Running k3d-ra-prod-agent-0
+    backend-66ddf79494-gpwr2 Running k3d-ra-prod-agent-0
+    frontend-54579c8f5-fgp2g Running k3d-ra-prod-agent-0
+    frontend-54579c8f5-w4xj6 Running k3d-ra-prod-agent-0
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Pending <none>
+    mongodb-exporter-68ff85dbff-wph8z Running k3d-ra-prod-agent-0
+    outbox-77b5db9f88-4zf92 Running k3d-ra-prod-agent-0
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-2jnjz Running k3d-ra-prod-agent-0
+    k3d-ra-prod-agent-0    Ready                      <none>          150m   v1.37.1+k3s1
+    k3d-ra-prod-agent-1    Ready,SchedulingDisabled   <none>          150m   v1.37.1+k3s1
+    k3d-ra-prod-server-0   Ready                      control-plane   150m   v1.37.1+k3s1
+[16:01:50 +12s] mongo-0 queda Pending: su PV local-path tiene afinidad a k3d-ra-prod-agent-1 (limitación documentada). La API sigue atendiendo:
+    GET /api/version durante el drain: HTTP 200
+[16:02:35 +57s] Outbox pendiente durante la ventana: 0
+[16:02:35 +57s] kubectl uncordon k3d-ra-prod-agent-1
+node/k3d-ra-prod-agent-1 uncordoned
+[16:02:42 +64s] mongo-0 de vuelta en k3d-ra-prod-agent-1
+[16:02:43 +65s] Outbox pendiente tras la recuperación: 0
+[16:02:43 +65s] Rebalanceo tras el mantenimiento (el scheduler no mueve Pods ya en ejecución): rollout restart
+[16:02:58 +80s] Distribución final:
+    backend-7687b4dfc5-d27lb Running k3d-ra-prod-agent-1
+    backend-7687b4dfc5-fk4qh Running k3d-ra-prod-agent-0
+    frontend-6759ffcdd8-64f8b Running k3d-ra-prod-agent-1
+    frontend-6759ffcdd8-jrzsk Running k3d-ra-prod-agent-0
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Running k3d-ra-prod-agent-1
+    mongodb-exporter-68ff85dbff-wph8z Running k3d-ra-prod-agent-0
+    outbox-77b5db9f88-4zf92 Running k3d-ra-prod-agent-0
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-2jnjz Running k3d-ra-prod-agent-0
+== Impacto en solicitudes (sonda cada 0.25 s)
+solicitudes=280 correctas=280 fallidas=0 (0.00%) p95_ok=78 ms

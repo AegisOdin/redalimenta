@@ -1,0 +1,28 @@
+# CA propia del laboratorio por ambiente (cada clúster genera la suya: no se comparten llaves).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: redalimenta-lab-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: RedAlimenta Lab CA (AMBIENTE)
+  secretName: redalimenta-lab-ca
+  duration: 8760h
+  privateKey: {algorithm: ECDSA, size: 256}
+  issuerRef: {name: selfsigned-bootstrap, kind: ClusterIssuer}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: redalimenta-ca
+spec:
+  ca:
+    secretName: redalimenta-lab-ca

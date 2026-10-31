@@ -1,0 +1,56 @@
+# Traefik como implementación de Gateway API. El Gateway lo declara la aplicación (k8s/base/gateway.yaml).
+deployment:
+  replicas: 2              # sin punto único: hallazgo de la prueba de drain (E11)
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    labelSelector:
+      matchLabels: {app.kubernetes.io/name: traefik}
+providers:
+  kubernetesCRD:
+    enabled: false
+  kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
+    enabled: true
+gateway:
+  enabled: false        # no crear Gateway por defecto
+gatewayClass:
+  enabled: true
+  name: traefik
+ports:
+  web:
+    port: 8000
+    exposedPort: 80
+  websecure:
+    port: 8443
+    exposedPort: 443
+service:
+  type: LoadBalancer
+  spec:
+    externalTrafficPolicy: Local    # conserva IP de origen
+accessLog:
+  enabled: true
+  format: json
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addServicesLabels: true
+resources:
+  requests: {cpu: 100m, memory: 96Mi}
+  limits: {memory: 256Mi}
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: {drop: [ALL]}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile: {type: RuntimeDefault}

@@ -1,0 +1,82 @@
+erDiagram
+  USUARIOS ||--o{ LOTES : "creado_por"
+  DONANTES ||--o{ LOTES : dona
+  PRODUCTOS ||--o{ LOTES : "es de"
+  HOGARES ||--o{ DESPENSAS : recibe
+  DESPENSAS ||--|{ DESPENSA_DETALLE : contiene
+  LOTES ||--o{ DESPENSA_DETALLE : "asignado en"
+  USUARIOS ||--o{ DESPENSAS : "solicita/aprueba/prepara/entrega"
+  USUARIOS {
+    int id PK
+    varchar email UK
+    varchar rol "CHECK 4 roles"
+    varchar ruta "obligatoria si voluntario"
+    varchar password_hash "Argon2id"
+    bool activo
+  }
+  DONANTES {
+    int id PK
+    varchar nombre UK
+    varchar tipo "supermercado|productor|particular"
+    bool activo
+  }
+  PRODUCTOS {
+    int id PK
+    varchar nombre UK
+    varchar categoria
+    bool refrigerado
+    text_arr alergenos
+    numeric peso_unitario_kg ">0"
+    numeric unidades_por_racion ">=0"
+  }
+  LOTES {
+    int id PK
+    varchar folio UK
+    int producto_id FK
+    int donante_id FK
+    int cantidad_inicial ">0"
+    int cantidad_disponible "0 a inicial"
+    date fecha_caducidad ">= recepcion"
+    varchar estado "9 estados"
+    numeric temperatura_c
+  }
+  HOGARES {
+    int id PK
+    varchar clave UK
+    smallint integrantes "1 a 20"
+    text_arr alergenos
+    varchar ruta
+    date ultima_entrega
+    bool activo
+  }
+  DESPENSAS {
+    int id PK
+    varchar folio UK
+    int hogar_id FK
+    varchar estado "8 estados"
+    numeric raciones "1 a 4"
+    date fecha_programada
+    timestamptz entregada_en
+  }
+  DESPENSA_DETALLE {
+    int id PK
+    int despensa_id FK
+    int lote_id FK
+    int cantidad ">0"
+  }
+  OUTBOX {
+    bigint id PK
+    uuid event_id UK
+    varchar tipo
+    int lote_id
+    jsonb payload
+    timestamptz publicado_en
+    int intentos
+  }
+  LOGIN_INTENTOS {
+    bigint id PK
+    varchar email
+    varchar ip
+    bool exito
+    timestamptz ts
+  }

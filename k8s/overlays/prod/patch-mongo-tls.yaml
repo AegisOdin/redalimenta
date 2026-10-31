@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: mongo}
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: pem              # MongoDB requiere certificado + llave en un solo PEM
+          image: mongo:9.0.4
+          command: ["sh", "-c", "cat /tls/tls.crt /tls/tls.key > /pem/server.pem && chmod 0400 /pem/server.pem"]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {memory: 64Mi}}
+          volumeMounts: [{name: tls, mountPath: /tls, readOnly: true}, {name: pem, mountPath: /pem}]
+      containers:
+        - name: mongo
+          args: ["--auth", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25", "--tlsMode", "requireTLS",
+                 "--tlsCertificateKeyFile", "/pem/server.pem", "--tlsCAFile", "/tls/ca.crt", "--tlsAllowConnectionsWithoutCertificates"]
+          startupProbe:
+            exec: {command: ["mongosh", "--quiet", "--norc", "--tls", "--tlsCAFile", "/tls/ca.crt", "--host", "localhost", "--eval", "db.adminCommand('ping').ok"]}
+          readinessProbe:
+            exec: {command: ["mongosh", "--quiet", "--norc", "--tls", "--tlsCAFile", "/tls/ca.crt", "--host", "localhost", "--eval", "db.adminCommand('ping').ok"]}
+          volumeMounts:
+            - {name: tls, mountPath: /tls, readOnly: true}
+            - {name: pem, mountPath: /pem}
+      volumes:
+        - {name: tls, secret: {secretName: mongo-tls, defaultMode: 0440}}
+        - {name: pem, emptyDir: {medium: Memory}}

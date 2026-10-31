@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: postgres-init}
+data:
+  # Solo se ejecuta la primera vez que se inicializa el volumen. Las contraseñas llegan por variables desde Secrets.
+  10-cuentas.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+      -v mig="$MIGRATOR_PASSWORD" -v app="$APP_PASSWORD" -v bk="$BACKUP_PASSWORD" -v exp="$EXPORTER_PASSWORD" <<'SQL'
+    CREATE ROLE redalimenta_migrator LOGIN PASSWORD :'mig';               -- dueño del esquema (DDL)
+    CREATE ROLE redalimenta_app LOGIN PASSWORD :'app' CONNECTION LIMIT 80; -- ejecución: solo DML
+    CREATE ROLE redalimenta_backup LOGIN PASSWORD :'bk';                  -- respaldos: solo lectura
+    CREATE ROLE redalimenta_exporter LOGIN PASSWORD :'exp' CONNECTION LIMIT 3;
+    GRANT pg_monitor TO redalimenta_exporter;
+    ALTER SCHEMA public OWNER TO redalimenta_migrator;
+    REVOKE ALL ON DATABASE redalimenta FROM PUBLIC;
+    GRANT CONNECT ON DATABASE redalimenta TO redalimenta_migrator, redalimenta_app, redalimenta_backup, redalimenta_exporter;
+    REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+    ALTER DEFAULT PRIVILEGES FOR ROLE redalimenta_migrator IN SCHEMA public
+      GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO redalimenta_app;
+    ALTER DEFAULT PRIVILEGES FOR ROLE redalimenta_migrator IN SCHEMA public
+      GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO redalimenta_app;
+    ALTER DEFAULT PRIVILEGES FOR ROLE redalimenta_migrator IN SCHEMA public GRANT SELECT ON TABLES TO redalimenta_backup;
+    ALTER DEFAULT PRIVILEGES FOR ROLE redalimenta_migrator IN SCHEMA public GRANT SELECT ON SEQUENCES TO redalimenta_backup;
+    SQL
+  pg_hba.conf: |
+    # socket local dentro del contenedor (scripts de init y sondas)
+    local   all   all                 trust
+    host    all   all   127.0.0.1/32  scram-sha-256
+    host    all   all   0.0.0.0/0     scram-sha-256
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels: {app.kubernetes.io/name: postgres}
+spec:
+  clusterIP: None            # headless: identidad estable postgres-0.postgres
+  selector: {app.kubernetes.io/name: postgres}
+  ports: [{name: postgres, port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels: {app.kubernetes.io/name: postgres, app.kubernetes.io/part-of: redalimenta}
+spec:
+  serviceName: postgres
+  replicas: 1                # una instancia: replicación y failover diseñados como ampliación (D04)
+  selector:
+    matchLabels: {app.kubernetes.io/name: postgres}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: postgres, app.kubernetes.io/part-of: redalimenta, rol: datos}
+    spec:
+      serviceAccountName: postgres
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: postgres
+          image: postgres:18.6-bookworm
+          args: ["-c", "max_connections=100", "-c", "shared_buffers=128MB", "-c", "hba_file=/etc/postgresql-custom/pg_hba.conf",
+                 "-c", "log_min_duration_statement=500", "-c", "password_encryption=scram-sha-256"]
+          ports: [{name: postgres, containerPort: 5432}]
+          env:
+            - {name: POSTGRES_DB, value: redalimenta}
+            - {name: POSTGRES_USER, value: postgres}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: pg-superuser, key: POSTGRES_PASSWORD}}
+          envFrom:
+            - secretRef: {name: pg-cuentas}
+          resources:
+            requests: {cpu: 250m, memory: 384Mi}
+            limits: {memory: 1Gi}
+          startupProbe:
+            exec: {command: ["pg_isready", "-U", "postgres", "-h", "127.0.0.1"]}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", "postgres", "-h", "127.0.0.1"]}
+            periodSeconds: 10
+          livenessProbe:
+            exec: {command: ["pg_isready", "-U", "postgres", "-h", "127.0.0.1"]}
+            periodSeconds: 20
+            failureThreshold: 6
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: datos, mountPath: /var/lib/postgresql/data}
+            - {name: init, mountPath: /docker-entrypoint-initdb.d}
+            - {name: hba, mountPath: /etc/postgresql-custom}
+            - {name: run, mountPath: /var/run/postgresql}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: init
+          configMap: {name: postgres-init, items: [{key: 10-cuentas.sh, path: 10-cuentas.sh}], defaultMode: 0555}
+        - name: hba
+          configMap: {name: postgres-init, items: [{key: pg_hba.conf, path: pg_hba.conf}]}
+        - {name: run, emptyDir: {}}
+        - {name: tmp, emptyDir: {}}
+  volumeClaimTemplates:
+    - metadata: {name: datos}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources: {requests: {storage: 2Gi}}

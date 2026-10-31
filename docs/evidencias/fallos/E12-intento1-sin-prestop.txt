@@ -1,0 +1,22 @@
+[15:47:56 +3s] Versión en producción: {"version":"1.0.0","ambiente":"prod"}
+5         <none>
+6         <none>
+
+[15:47:56 +3s] Promuevo el artefacto aprobado en dev (1.1.1) — mismo digest, solo cambia la configuración del overlay
+    digest: sha256:3a862c988a485498e8103f325c8690e4bd850cb459f1b6bd244fdde97557c2f2
+    digest: sha256:bf54d51d36e8b20bcc05aa4b90c3b84aaf6b4cb973284077db9a731ee3cae15e
+[15:48:28 +35s] Versión tras rolling update: {"version":"1.1.1","ambiente":"prod"} · migración: 0002
+    backend-57485fcd79-cbfrb   k3d-ra-registry.localhost:5050/redalimenta-backend@sha256:3a862c988a485498e8103f325c8690e4bd850cb459f1b6bd244fdde97557c2f2
+    backend-57485fcd79-tcsgd   k3d-ra-registry.localhost:5050/redalimenta-backend@sha256:3a862c988a485498e8103f325c8690e4bd850cb459f1b6bd244fdde97557c2f2
+[15:48:28 +35s] Rollback: kubectl rollout undo deploy/backend y deploy/frontend (el esquema 0002 es compatible con 1.0.0; no se revierte)
+deployment.apps/backend rolled back
+deployment.apps/frontend rolled back
+[15:48:38 +45s] Versión tras rollback: {"version":"1.0.0","ambiente":"prod"} · migración sigue en 0002
+    5         <none>
+    7         <none>
+    8         <none>
+    
+    pruebas funcionales tras rollback: 1 failed, 21 passed in 21.53s
+== Impacto en solicitudes (sonda cada 0.25 s)
+solicitudes=201 correctas=196 fallidas=5 (2.49%) p95_ok=69 ms
+primer error 15:48:03 (HTTP 502), último error 15:48:43, ventana con errores=34.8 s, códigos=['0', '502']

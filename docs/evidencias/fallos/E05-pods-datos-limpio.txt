@@ -1,0 +1,5 @@
+[15:35:56 +1s] Antes: lotes/despensas=165/87 expedientes=166 · nodo postgres=k3d-ra-prod-agent-0 mongo=k3d-ra-prod-agent-1
+[15:35:56 +1s] Elimino postgres-0 y mongo-0
+pod "postgres-0" deleted from redalimenta namespace
+pod "mongo-0" deleted from redalimenta namespace
+[15:36:04 +9s] Recreados. Después: lotes/despensas=165/87 expedientes=166 · mismo PVC: datos-mongo-0      pvc-002089b0-3d18-4925-9ebb-762581e4e41f datos-postgres-0   pvc-494a3137-d380-4b21-a3ce-e3960de37371 respaldos          pvc-7946f9f8-352a-428f-bac7-01d6cbc6022a 

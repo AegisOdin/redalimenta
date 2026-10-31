@@ -1,0 +1,57 @@
+# Clúster ra-prod: 1 control plane + 2 workers
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: ra-prod
+servers: 1
+agents: 2
+image: rancher/k3s:v1.37.1-k3s1
+network: ra-prod-net
+kubeAPI:
+  hostIP: "127.0.0.1"   # API solo accesible desde el equipo administrador
+  hostPort: "6552"
+registries:
+  use: ["k3d-ra-registry.localhost:5050"]
+volumes:
+  - volume: /home/odin/Documents/Proyecto_Kubernetes/redalimenta/infra/clusters/audit-policy.yaml:/etc/rancher/k3s/audit-policy.yaml
+    nodeFilters: ["server:*"]
+options:
+  k3d:
+    wait: true
+    timeout: "360s"
+  runtime:
+    serversMemory: "4g"
+    agentsMemory: "8g"
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false
+  k3s:
+    extraArgs:
+      - arg: --flannel-backend=none          # CNI: Calico
+        nodeFilters: ["server:*"]
+      - arg: --disable-network-policy        # NetworkPolicy la aplica Calico
+        nodeFilters: ["server:*"]
+      - arg: --disable=traefik               # Traefik se instala con Helm (Gateway API)
+        nodeFilters: ["server:*"]
+      - arg: --disable=servicelb             # IP externa: MetalLB
+        nodeFilters: ["server:*"]
+      - arg: --cluster-cidr=10.52.0.0/16
+        nodeFilters: ["server:*"]
+      - arg: --service-cidr=10.53.0.0/16
+        nodeFilters: ["server:*"]
+      - arg: --cluster-dns=10.53.0.10
+        nodeFilters: ["server:*"]
+      - arg: --secrets-encryption            # cifrado de Secrets en reposo (aescbc)
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-policy-file=/etc/rancher/k3s/audit-policy.yaml
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-log-maxage=7
+        nodeFilters: ["server:*"]
+      - arg: --kubelet-arg=system-reserved=cpu=10   # simula 2 vCPU asignables en el server
+        nodeFilters: ["server:*"]
+      - arg: --node-taint=node-role.kubernetes.io/control-plane=true:NoSchedule   # cargas solo en workers
+        nodeFilters: ["server:*"]
+      - arg: --kubelet-arg=system-reserved=cpu=8    # simula 4 vCPU asignables por worker
+        nodeFilters: ["agent:*"]

@@ -1,0 +1,51 @@
+# 2026-10-31T20:21:33Z
+== Identidad: ana.operadora grupos=["redalimenta:operadores","system:authenticated"]
+  get pods                         yes
+  list deployments                 yes
+  get secrets                      no
+  patch deployments                yes
+  delete pods                      yes
+  create pods/exec                 no
+  delete statefulsets              no
+  create jobs                      yes
+  get pods (ns kube-system)        no
+  create clusterrolebindings       no
+== Identidad: luis.lector grupos=["redalimenta:lectores","system:authenticated"]
+  get pods                         yes
+  list deployments                 yes
+  get secrets                      no
+  patch deployments                no
+  delete pods                      no
+  create pods/exec                 no
+  delete statefulsets              no
+  create jobs                      no
+  get pods (ns kube-system)        no
+  create clusterrolebindings       no
+== Acción real denegada (lector intenta leer un Secret)
+  Error from server (Forbidden): secrets "backend-secrets" is forbidden: User "luis.lector" cannot get resource "secrets" in API group "" in the namespace "redalimenta"
+== Acción real permitida (operadora consulta Pods)
+  backend-674bd556db-gl68t   1/1   Running   0     20m
+  backend-674bd556db-zl4vq   1/1   Running   0     20m
+== ServiceAccounts de la app sin token montado
+  backend-674bd556db-gl68t automount=false
+  backend-674bd556db-zl4vq automount=false
+  ls: cannot access '/var/run/secrets/kubernetes.io/serviceaccount': No such file or directory
+  can-i (sa backend) list secrets: no
+== PostgreSQL: usuario de ejecución sin DDL ni privilegios administrativos
+  redalimenta_app|f|f|f
+  redalimenta_backup|f|f|f
+  redalimenta_exporter|f|f|f
+  redalimenta_migrator|f|f|f
+  app: CREATE TABLE intrusa(x int)              -> ERROR:  permission denied for schema public
+  app: DROP TABLE lotes                         -> ERROR:  must be owner of table lotes
+  app: DELETE FROM outbox                       -> ERROR:  permission denied for table outbox
+  app: ALTER TABLE lotes ADD COLUMN x int       -> ERROR:  must be owner of table lotes
+  app: SELECT count(*) FROM lotes               -> 165
+  backup: INSERT INTO donantes(nombre,tipo) VALUES ('x','particular') -> ERROR:  permission denied for table donantes
+  backup: SELECT count(*) FROM hogares          -> 123
+  exporter: SELECT * FROM usuarios              -> ERROR:  permission denied for table usuarios
+== MongoDB: usuario de la app limitado a readWrite en redalimenta
+  app: db.getSiblingDB('redalimenta').expediente_lote.countDocuments() -> 166
+  app: db.getSiblingDB('admin').createUser({user:'x',pwd:'y',roles:[]}) -> MongoServerError: not authorized on admin to execute command { createUser: "x", pwd: "xxx", roles: [], lsid: {
+  app: db.getSiblingDB('redalimenta').dropDatabase()                  -> MongoServerError: not authorized on redalimenta to execute command { dropDatabase: 1, lsid: { id: UUID("9144c7
+  app: db.getSiblingDB('admin').system.users.find().toArray()         -> MongoServerError: not authorized on admin to execute command { find: "system.users", filter: {}, lsid: { id: U

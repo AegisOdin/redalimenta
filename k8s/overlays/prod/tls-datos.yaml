@@ -1,0 +1,20 @@
+# Certificados de servidor para los motores (firmados por la CA del ambiente)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: {name: postgres-tls}
+spec:
+  secretName: postgres-tls
+  dnsNames: [postgres, postgres.redalimenta, postgres.redalimenta.svc, postgres.redalimenta.svc.cluster.local, postgres-0.postgres.redalimenta.svc.cluster.local]
+  privateKey: {algorithm: ECDSA, size: 256}
+  usages: [server auth]
+  issuerRef: {name: redalimenta-ca, kind: ClusterIssuer}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: {name: mongo-tls}
+spec:
+  secretName: mongo-tls
+  dnsNames: [mongo, mongo.redalimenta, mongo.redalimenta.svc, mongo.redalimenta.svc.cluster.local, mongo-0.mongo.redalimenta.svc.cluster.local, localhost]
+  privateKey: {algorithm: ECDSA, size: 256}
+  usages: [server auth]
+  issuerRef: {name: redalimenta-ca, kind: ClusterIssuer}

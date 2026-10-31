@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor C as Coordinador
+  participant N as Navegador (SPA)
+  participant G as Traefik (Gateway TLS)
+  participant B as Backend (réplica X)
+  participant P as PostgreSQL
+  C->>N: Captura donativo (producto, donante, cantidad, caducidad)
+  N->>N: Validación en cliente (obligatorios, rangos, fecha ≥ hoy)
+  N->>G: POST /api/lotes (cookie sesión + X-CSRF-Token)
+  G->>B: HTTP :8000 (HTTPRoute /api)
+  B->>B: Valida JWT, CSRF y rol = coordinador
+  alt sin permiso / CSRF inválido / sesión expirada
+    B-->>N: 401/403 + mensaje
+  else datos inválidos (Pydantic)
+    B-->>N: 422 {errores por campo}
+  else válido
+    B->>P: BEGIN · nextval(folio_lote_seq) · INSERT lotes · INSERT outbox(lote_recibido)
+    P-->>B: COMMIT
+    B-->>N: 201 {folio L-2610-01004, estado recibido}
+  end
+  N-->>C: Mensaje de confirmación o error
+  Note over B,P: Consulta: GET /api/lotes?q=&page= (ILIKE + paginación)<br/>Modificación: PUT (solo recibido/en_inspeccion) · Baja: DELETE solo sin historia (si no, retiro/merma)

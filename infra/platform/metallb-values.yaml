@@ -1,0 +1,6 @@
+# Solo modo L2 (ARP); sin BGP/FRR
+frrk8s:
+  enabled: false
+speaker:
+  frr:
+    enabled: false

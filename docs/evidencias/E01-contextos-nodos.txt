@@ -1,0 +1,73 @@
+# E01 2026-10-31T20:47:56Z
+== Host
+Architecture:                            x86_64
+CPU(s):                                  12
+Model name:                              Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+CPU(s) scaling MHz:                      76%
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi        12Gi       886Mi       731Mi        18Gi        18Gi
+/dev/mapper/ubuntu--vg-ubuntu--lv  455G   63G  370G  15% /
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+7.0.0-38-generic
+Docker 29.1.3
+wlo1 192.168.1.19/24
+== Contextos
+CURRENT   NAME          CLUSTER       AUTHINFO            NAMESPACE
+*         k3d-ra-dev    k3d-ra-dev    admin@k3d-ra-dev    
+          k3d-ra-prod   k3d-ra-prod   admin@k3d-ra-prod   
+== k3d-ra-dev nodos
+NAME                  STATUS   ROLES           AGE   VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+k3d-ra-dev-server-0   Ready    control-plane   78m   v1.37.1+k3s1   172.30.0.3    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+NODO                  CPU_ASIGNABLE   MEM_ASIGNABLE   TAINTS
+k3d-ra-dev-server-0   2               4294967Ki       <none>
+== k3d-ra-dev componentes del sistema
+cert-manager    cert-manager-574945dccf-jqj5r             1/1  Running    k3d-ra-dev-server-0
+cert-manager    cert-manager-cainjector-65f5d8fdc9-nkct6  1/1  Running    k3d-ra-dev-server-0
+cert-manager    cert-manager-webhook-58b9c7b6cc-wszxj     1/1  Running    k3d-ra-dev-server-0
+kube-system     calico-kube-controllers-846669895c-wzh7h  1/1  Running    k3d-ra-dev-server-0
+kube-system     calico-node-gq7mg                         1/1  Running    k3d-ra-dev-server-0
+kube-system     coredns-577d995dff-r6s2b                  1/1  Running    k3d-ra-dev-server-0
+kube-system     helm-install-gateway-api-crd-p9qw6        0/1  Completed  k3d-ra-dev-server-0
+kube-system     local-path-provisioner-6858d854cf-tm4lc   1/1  Running    k3d-ra-dev-server-0
+kube-system     metrics-server-778c4649b4-dt4ns           1/1  Running    k3d-ra-dev-server-0
+metallb-system  metallb-controller-ffcf647c4-4rbx6        1/1  Running    k3d-ra-dev-server-0
+metallb-system  metallb-speaker-xf8jr                     1/1  Running    k3d-ra-dev-server-0
+traefik         traefik-65cb4859dd-hd9bl                  1/1  Running    k3d-ra-dev-server-0
+== k3d-ra-prod nodos
+NAME                   STATUS   ROLES           AGE   VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+k3d-ra-prod-agent-0    Ready    <none>          76m   v1.37.1+k3s1   172.31.0.5    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-agent-1    Ready    <none>          76m   v1.37.1+k3s1   172.31.0.4    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-server-0   Ready    control-plane   76m   v1.37.1+k3s1   172.31.0.3    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+NODO                   CPU_ASIGNABLE   MEM_ASIGNABLE   TAINTS
+k3d-ra-prod-agent-0    4               8589934Ki       <none>
+k3d-ra-prod-agent-1    4               8589934Ki       <none>
+k3d-ra-prod-server-0   2               4294967Ki       node-role.kubernetes.io/control-plane
+== k3d-ra-prod componentes del sistema
+cert-manager    cert-manager-79b85d4bfb-tj4gn             1/1  Running    k3d-ra-prod-agent-0
+cert-manager    cert-manager-cainjector-774d7f7994-4f4sp  1/1  Running    k3d-ra-prod-agent-1
+cert-manager    cert-manager-webhook-8845cffbb-m5mr4      1/1  Running    k3d-ra-prod-agent-0
+kube-system     calico-kube-controllers-846669895c-bnfd5  1/1  Running    k3d-ra-prod-agent-0
+kube-system     calico-node-lnwg8                         1/1  Running    k3d-ra-prod-agent-0
+kube-system     calico-node-mdf2q                         1/1  Running    k3d-ra-prod-server-0
+kube-system     calico-node-xtwr8                         1/1  Running    k3d-ra-prod-agent-1
+kube-system     coredns-577d995dff-897fp                  1/1  Running    k3d-ra-prod-agent-0
+kube-system     helm-install-gateway-api-crd-rs87l        0/1  Completed  k3d-ra-prod-agent-0
+kube-system     local-path-provisioner-6858d854cf-dvf2l   1/1  Running    k3d-ra-prod-agent-0
+kube-system     metrics-server-778c4649b4-rsx2v           1/1  Running    k3d-ra-prod-agent-0
+metallb-system  metallb-controller-ffcf647c4-rwmdw        1/1  Running    k3d-ra-prod-agent-1
+metallb-system  metallb-speaker-7pnrx                     1/1  Running    k3d-ra-prod-agent-1
+metallb-system  metallb-speaker-kglbh                     1/1  Running    k3d-ra-prod-agent-0
+metallb-system  metallb-speaker-pkfmk                     1/1  Running    k3d-ra-prod-server-0
+monitoring      alertmanager-kps-alertmanager-0           2/2  Running    k3d-ra-prod-agent-1
+monitoring      alloy-v9jmj                               2/2  Running    k3d-ra-prod-agent-0
+monitoring      alloy-vqvzb                               2/2  Running    k3d-ra-prod-agent-1
+monitoring      kps-grafana-5778d4f86d-wkvfn              3/3  Running    k3d-ra-prod-agent-0
+monitoring      kps-kube-state-metrics-595787775f-h5rr4   1/1  Running    k3d-ra-prod-agent-1
+monitoring      kps-operator-5dcd7d497d-8zcts             1/1  Running    k3d-ra-prod-agent-1
+monitoring      kps-prometheus-node-exporter-crclm        1/1  Running    k3d-ra-prod-server-0
+monitoring      kps-prometheus-node-exporter-gbthg        1/1  Running    k3d-ra-prod-agent-0
+monitoring      kps-prometheus-node-exporter-xjpcg        1/1  Running    k3d-ra-prod-agent-1
+monitoring      loki-0                                    2/2  Running    k3d-ra-prod-agent-0
+monitoring      loki-gateway-9fcc97dd6-nthnk              1/1  Running    k3d-ra-prod-agent-0
+monitoring      prometheus-kps-prometheus-0               2/2  Running    k3d-ra-prod-agent-1
+traefik         traefik-65cb4859dd-9hk45                  1/1  Running    k3d-ra-prod-agent-1

@@ -1,0 +1,32 @@
+# 2026-10-31T20:19:28Z ambiente=prod
+== Control: servicios sanos
+127.0.0.1:5432 - accepting connections
+mongo      10.52.147.23
+postgres   10.52.3.19
+== Pod autorizado (backend-674bd556db-gl68t, rol=api)
+backend -> postgres 5432: PERMITIDA
+backend -> mongo 27017: PERMITIDA
+backend -> Internet 1.1.1.1:443 (egress no declarado): BLOQUEADA TimeoutError
+== Pod NO autorizado (intruso, sin rol)
+DNS desde intruso: 10.52.3.19 (resuelve => DNS permitido)
+intruso -> postgres:5432: BLOQUEADA
+intruso -> mongo:27017:   BLOQUEADA
+intruso -> backend:8000 (ingress):  BLOQUEADA
+== Mismo Pod con la etiqueta autorizada rol=respaldos (demuestra que el bloqueo es la política)
+intruso[rol=respaldos] -> postgres:5432: PERMITIDA
+intruso[rol=respaldos] -> backend:8000:  BLOQUEADA  (respaldos no tiene salida al backend)
+== Desde otro namespace (default) hacia la BD
+default/intruso-ns -> postgres.redalimenta:5432: BLOQUEADA
+== Políticas vigentes
+NAME                 POD-SELECTOR                                                            AGE
+app-salida-a-datos   rol in (api,migraciones,tareas,worker)                                  19m
+backend-entrada      app.kubernetes.io/name=backend                                          19m
+denegar-todo         <none>                                                                  19m
+exporters-salida     app.kubernetes.io/name in (mongodb-exporter,postgres-exporter)          19m
+frontend-entrada     app.kubernetes.io/name=frontend                                         19m
+metricas-entrada     app.kubernetes.io/name in (mongodb-exporter,outbox,postgres-exporter)   19m
+mongo-entrada        app.kubernetes.io/name=mongo                                            19m
+permitir-dns         <none>                                                                  19m
+postgres-entrada     app.kubernetes.io/name=postgres                                         19m
+pruebas-salida       rol=pruebas                                                             19m
+respaldos-salida     rol=respaldos                                                           19m

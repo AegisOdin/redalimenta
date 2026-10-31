@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cuota-redalimenta
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 6Gi
+    limits.memory: 12Gi
+    persistentvolumeclaims: "8"
+    requests.storage: 40Gi
+    services.loadbalancers: "0"    # nada de la app se publica directo con LoadBalancer
+    services.nodeports: "0"        # ni con NodePort (las BD nunca quedan expuestas)
+    pods: "40"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limites-por-defecto
+spec:
+  limits:
+    - type: Container
+      default: {memory: 256Mi}
+      defaultRequest: {cpu: 50m, memory: 64Mi}
+      max: {memory: 2Gi}

@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: postgres}
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          args: ["-c", "max_connections=100", "-c", "shared_buffers=128MB", "-c", "hba_file=/etc/postgresql-custom/pg_hba.conf",
+                 "-c", "log_min_duration_statement=500", "-c", "password_encryption=scram-sha-256",
+                 "-c", "ssl=on", "-c", "ssl_cert_file=/tls/tls.crt", "-c", "ssl_key_file=/tls/tls.key",
+                 "-c", "ssl_min_protocol_version=TLSv1.2"]
+          volumeMounts:
+            - {name: tls, mountPath: /tls, readOnly: true}
+      volumes:
+        - name: tls
+          secret: {secretName: postgres-tls, defaultMode: 0640}

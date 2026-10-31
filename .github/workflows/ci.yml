@@ -1,0 +1,93 @@
+# CI/CD de RedAlimenta: construcción, pruebas, validación de manifiestos, análisis de vulnerabilidades
+# y promoción controlada (aprobación manual del environment "produccion") del MISMO digest a producción.
+name: ci
+on:
+  push: {branches: [main], tags: ["v*"]}
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      promover_digest_backend: {description: "Digest aprobado del backend", required: false}
+      promover_digest_frontend: {description: "Digest aprobado del frontend", required: false}
+permissions: {contents: read, packages: write}
+env:
+  REG: ghcr.io/${{ github.repository_owner }}
+jobs:
+  pruebas:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18.6-bookworm
+        env: {POSTGRES_PASSWORD: ci, POSTGRES_DB: redalimenta}
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s
+      mongo:
+        image: mongo:9.0.4
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.13"}
+      - name: Dependencias fijadas
+        run: pip install -r backend/requirements.txt -r tests/functional/requirements.txt
+      - name: Roles de BD, migraciones, índices y semilla
+        env:
+          PGPASSWORD: ci
+          MIGRATION_DATABASE_URL: postgresql+psycopg://postgres:ci@localhost/redalimenta
+          DATABASE_URL: postgresql+psycopg://postgres:ci@localhost/redalimenta
+          MONGO_URL: mongodb://localhost:27017
+          SESSION_SECRET: ci-solo-pruebas
+          SEED_PASSWORD: ci-semilla-123
+          APP_DB_ROLE: postgres
+          READONLY_DB_ROLE: postgres
+        working-directory: backend
+        run: alembic upgrade head && python -m app.mongo_init && python -m app.seed
+      - name: API y pruebas funcionales
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:ci@localhost/redalimenta
+          MONGO_URL: mongodb://localhost:27017
+          SESSION_SECRET: ci-solo-pruebas
+          COOKIE_SECURE: "false"
+          SEED_PASSWORD: ci-semilla-123
+        run: |
+          (cd backend && uvicorn app.main:app --port 18000 &) ; (cd backend && python -m app.outbox &)
+          sleep 5 && BASE_URL=http://localhost:18000 pytest -q tests/functional
+  manifiestos:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: kustomize build + kubeconform (esquemas k8s 1.37 y CRDs)
+        run: |
+          for a in dev prod; do kubectl kustomize k8s/overlays/$a > /tmp/$a.yaml; done
+          docker run --rm -v /tmp:/m ghcr.io/yannh/kubeconform:v0.7.0 -strict -summary -ignore-missing-schemas \
+            -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' /m/dev.yaml /m/prod.yaml
+  imagenes:
+    needs: [pruebas, manifiestos]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    outputs:
+      backend: ${{ steps.push.outputs.backend }}
+      frontend: ${{ steps.push.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/login-action@v3
+        with: {registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}"}
+      - id: push
+        run: |
+          for c in backend frontend; do
+            docker build -t $REG/redalimenta-$c:${GITHUB_SHA::7} --build-arg APP_VERSION=${GITHUB_REF_NAME} $c
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1 image --severity HIGH,CRITICAL \
+              --ignore-unfixed --exit-code 1 $REG/redalimenta-$c:${GITHUB_SHA::7}
+            docker push $REG/redalimenta-$c:${GITHUB_SHA::7}
+            echo "$c=$(docker inspect --format '{{index .RepoDigests 0}}' $REG/redalimenta-$c:${GITHUB_SHA::7} | cut -d@ -f2)" >> $GITHUB_OUTPUT
+          done
+  promover-produccion:
+    needs: imagenes
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    environment: produccion      # requiere aprobación manual de un revisor
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          printf "backend x %s\nfrontend x %s\n" "${{ needs.imagenes.outputs.backend }}" "${{ needs.imagenes.outputs.frontend }}" > build.txt
+          infra/scripts/promover.sh prod build.txt
+          echo "Digests aprobados escritos en k8s/overlays/prod; el despliegue se aplica desde la red de administración."

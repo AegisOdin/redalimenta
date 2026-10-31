@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: redalimenta
+labels:
+  - pairs: {app.kubernetes.io/part-of: redalimenta}
+    includeSelectors: false
+resources:
+  - namespace.yaml
+  - quotas.yaml
+  - serviceaccounts.yaml
+  - rbac.yaml
+  - networkpolicies.yaml
+  - postgres.yaml
+  - mongo.yaml
+  - app.yaml
+  - jobs.yaml
+  - respaldos.yaml
+  - gateway.yaml
+images:
+  - {name: backend, newName: k3d-ra-registry.localhost:5050/redalimenta-backend}
+  - {name: frontend, newName: k3d-ra-registry.localhost:5050/redalimenta-frontend}

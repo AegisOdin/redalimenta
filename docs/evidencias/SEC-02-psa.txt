@@ -1,0 +1,16 @@
+# SEC-02 Pod Security Admission (restricted) en prod 2026-10-31T21:09:48Z
+pod-security.kubernetes.io/audit=restricted
+pod-security.kubernetes.io/enforce-version=latest
+pod-security.kubernetes.io/enforce=restricted
+pod-security.kubernetes.io/warn=restricted
+== Intento de Pod privilegiado como root (debe rechazarse)
+Error from server (Forbidden): pods "privilegiado" is forbidden: violates PodSecurity "restricted:latest": privileged (container "c" must no
+t set securityContext.privileged=true), allowPrivilegeEscalation != false (container "c" must set securityContext.allowPrivilegeEscalation=f
+alse), unrestricted capabilities (container "c" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container 
+"c" must set securityContext.runAsNonRoot=true), runAsUser=0 (container "c" must not set runAsUser=0), seccompProfile (pod or container "c" 
+must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
+== Pod sin securityContext (también rechazado)
+Error from server (Forbidden): pods "sinctx" is forbidden: violates PodSecurity "restricted:latest": allowPrivilegeEscalation != false (cont
+ainer "sinctx" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "sinctx" must set securityCont
+ext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container "sinctx" must set securityContext.runAsNonRoot=true), seccompProfile 
+(pod or container "sinctx" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")

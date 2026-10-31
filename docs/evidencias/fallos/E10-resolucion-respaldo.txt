@@ -1,0 +1,10 @@
+# E10 Resolución de RespaldoFallido 2026-10-31T21:39:07Z
+== Diagnóstico (logs del job fallido)
+Found 2 pods, using pod/respaldo-durante-caida-lpmr2
+pg_dump: error: could not translate host name "postgres" to address: Name or service not known
+job.batch "respaldo-durante-caida" deleted from redalimenta namespace
+job.batch/respaldo-tras-incidente created
+job.batch/respaldo-tras-incidente condition met
+{"motor":"mongo","inicio":1793482748,"fin":1793482748,"segundos":0,"bytes":90160}
+postgres.dump.enc: OK
+mongo.archive.enc: OK

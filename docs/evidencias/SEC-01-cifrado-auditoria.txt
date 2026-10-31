@@ -1,0 +1,17 @@
+# SEC-01 Cifrado de Secrets en reposo (prod) 2026-10-31T20:51:58Z
+time="2026-10-31T20:51:58Z" level=warning msg="Cluster CA certificate is not trusted by the host CA bundle, but the token does not include a CA hash. Use the full token from the server's node-token file to enable Cluster CA validation."
+Encryption Status: Enabled
+Current Rotation Stage: start
+Server Encryption Hashes: All hashes match
+
+Active  Key Type  Name
+------  --------  ----
+ *      AES-CBC   aescbckey
+
+== Valor almacenado en kine/SQLite para /registry/secrets/redalimenta/backend-secrets (primeros bytes)
+     75 k8s:enc:aescbc:v1:aescbckey
+== ¿Aparece el texto plano 'postgresql+psycopg://redalimenta_app' en la base del clúster?
+0
+== Auditoría: últimas lecturas de Secrets registradas (metadatos, sin contenido)
+2026-10-31T20:51:27.368691Z system:serviceaccount:monitoring:loki watch monitoring None nivel=Metadata
+2026-10-31T20:52:27.378463Z system:serviceaccount:monitoring:loki watch monitoring None nivel=Metadata

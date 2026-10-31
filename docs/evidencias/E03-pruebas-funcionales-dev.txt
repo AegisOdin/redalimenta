@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-8.4.2, pluggy-1.7.0
+rootdir: /tests
+plugins: anyio-4.15.1
+collected 22 items
+
+functional/test_api.py ......................                            [100%]
+
+=============================== warnings summary ===============================
+functional/test_api.py::test_login_invalido
+functional/test_api.py::test_sin_sesion
+functional/test_api.py::test_token_manipulado
+functional/test_api.py::test_csrf_obligatorio
+functional/test_api.py::test_voluntario_no_registra_lotes
+functional/test_api.py::test_social_no_modifica_inventario
+functional/test_api.py::test_admin_no_confirma_entregas
+functional/test_api.py::test_flujo_completo_fefo_alergenos_y_14_dias
+functional/test_api.py::test_flujo_completo_fefo_alergenos_y_14_dias
+  /usr/local/lib/python3.13/site-packages/httpx/_config.py:51: DeprecationWarning: `verify=<str>` is deprecated. Use `verify=ssl.create_default_context(cafile=...)` or `verify=ssl.create_default_context(capath=...)` instead.
+    warnings.warn(message, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 22 passed, 9 warnings in 1.15s ========================

@@ -1,0 +1,58 @@
+# kube-prometheus-stack (Prometheus Operator, Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics)
+fullnameOverride: kps
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    serviceMonitorSelectorNilUsesHelmValues: false   # toma ServiceMonitors/PrometheusRules de todos los namespaces
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources: {requests: {cpu: 200m, memory: 512Mi}, limits: {memory: 1536Mi}}
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: [ReadWriteOnce]
+          resources: {requests: {storage: 10Gi}}
+alertmanager:
+  alertmanagerSpec:
+    resources: {requests: {cpu: 20m, memory: 64Mi}}
+  config:
+    # Sin envío a terceros: las alertas se consultan en Alertmanager/Grafana (receptor nulo + webhook local opcional)
+    route:
+      receiver: "laboratorio"
+      group_by: [alertname, namespace]
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 4h
+      routes:
+        - receiver: "null"
+          matchers: ['alertname = "Watchdog"']
+    receivers:
+      - name: "null"
+      - name: "laboratorio"
+grafana:
+  adminUser: admin
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  defaultDashboardsTimezone: America/Mexico_City
+  resources: {requests: {cpu: 50m, memory: 128Mi}, limits: {memory: 384Mi}}
+  sidecar:
+    dashboards: {enabled: true, searchNamespace: ALL, label: grafana_dashboard}
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      url: http://loki-gateway.monitoring.svc.cluster.local
+      access: proxy
+kubeControllerManager: {enabled: false}   # k3s: componentes embebidos en un solo proceso
+kubeScheduler: {enabled: false}
+kubeProxy: {enabled: false}
+kubeEtcd: {enabled: false}
+prometheus-node-exporter:
+  resources: {requests: {cpu: 20m, memory: 32Mi}}
+kube-state-metrics:
+  resources: {requests: {cpu: 20m, memory: 64Mi}}

@@ -1,0 +1,25 @@
+digraph dev {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=13, labelloc=t, label="Arquitectura de implementación — DESARROLLO (clúster k3d-ra-dev, 1 nodo)", bgcolor=white, pad=0.3, nodesep=0.25];
+  node [shape=box, style="rounded,filled", fillcolor="#ffffff", fontname="DejaVu Sans", fontsize=10, color="#5d6b64"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#5d6b64"];
+  usuario [label="Desarrollador / navegador", shape=oval, fillcolor="#e8f3ed"];
+  admin [label="kubectl · helm\ncontexto k3d-ra-dev\nAPI 127.0.0.1:6551", fillcolor="#fff3d6"];
+  vip [label="MetalLB 172.30.0.200\n(pool .200-.210)", fillcolor="#e5effb"];
+  subgraph cluster_host { label="Red Docker ra-dev-net 172.30.0.0/24 · firewall RA-FW"; style="rounded,dashed"; color="#999999";
+    lb [label="serverlb 172.30.0.4"];
+    subgraph cluster_n { label="k3d-ra-dev-server-0 · 172.30.0.3 · control plane + cargas · 4 GiB / 2 vCPU asignables"; style="rounded,filled"; fillcolor="#f6f8f7";
+      sys [label="kube-system: Calico (CNI + NetworkPolicy) · CoreDNS 10.43.0.10\nmetrics-server · local-path-provisioner"];
+      plat [label="metallb-system · cert-manager (CA lab dev) · traefik (Gateway API)", fillcolor="#e5effb"];
+      subgraph cluster_ns { label="namespace redalimenta · PSA restricted · ResourceQuota · LimitRange · default-deny"; style="rounded"; color="#1f6f4a";
+        gw [label="Gateway redalimenta + HTTPRoutes\nredalimenta-dev.172-30-0-200.sslip.io\nCertificate redalimenta-tls", fillcolor="#e5effb"];
+        fe [label="frontend x1", fillcolor="#e8f3ed"]; be [label="backend x1\n(escalado manual)", fillcolor="#e8f3ed"]; ob [label="outbox x1", fillcolor="#e8f3ed"];
+        pg [label="postgres-0", fillcolor="#e5effb"]; mg [label="mongo-0", fillcolor="#e5effb"];
+        pv1 [label="PVC postgres 2Gi", shape=cylinder]; pv2 [label="PVC mongo 2Gi", shape=cylinder]; pv3 [label="PVC respaldos 5Gi", shape=cylinder];
+        jobs [label="Job migraciones (alembic + índices Mongo + semilla)\nCronJob tarea-diaria · CronJob respaldo", fillcolor="#fde7e4"];
+      }
+    }
+  }
+  usuario -> vip [label="HTTPS"]; vip -> plat -> gw; gw -> fe [label="/"]; gw -> be [label="/api"];
+  be -> pg; be -> mg; ob -> pg; ob -> mg; pg -> pv1 [arrowhead=none]; mg -> pv2 [arrowhead=none]; jobs -> pv3 [arrowhead=none]; jobs -> pg [style=dotted];
+  admin -> lb -> sys;
+}

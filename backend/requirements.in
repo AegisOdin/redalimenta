@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg[binary]
+alembic
+pymongo
+argon2-cffi
+PyJWT
+pydantic
+prometheus-client
+python-json-logger

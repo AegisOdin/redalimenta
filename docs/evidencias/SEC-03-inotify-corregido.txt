@@ -1,0 +1,3 @@
+# Corrección de límite inotify del host 2026-10-31T22:31:13Z
+antes: max_user_instances=128 · después: 1024 (persistente en /etc/sysctl.d/99-kubernetes-k3d.conf)
+líneas 'failed to create fsnotify watcher' en Loki: 694 en los 25 min previos · 0 en los 90 s posteriores

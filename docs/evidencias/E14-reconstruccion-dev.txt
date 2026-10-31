@@ -1,0 +1,31 @@
+# E14 Reconstrucción de desarrollo desde recursos limpios 2026-10-31T22:03:34Z
+Precondición: se elimina el clúster ra-dev (nodos, volúmenes, Secrets, CA). Se conservan: repositorio, registro OCI y secrets/dev.env (copia de recuperación).
+[36mINFO[0m[0001] Successfully deleted cluster ra-dev!         
+[2s] clúster eliminado
+NAME                  STATUS   ROLES           AGE   VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+k3d-ra-dev-server-0   Ready    control-plane   90s   v1.37.1+k3s1   172.30.0.3    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+[100s] paso 2 listo (clúster + Calico)
+NAME      TYPE           CLUSTER-IP    EXTERNAL-IP    PORT(S)                      AGE
+traefik   LoadBalancer   10.43.88.97   172.30.0.200   80:31388/TCP,443:32595/TCP   27s
+[229s] paso 3 listo (MetalLB, cert-manager, Traefik)
+configmap/ca-laboratorio aplicado
+[231s] paso 4 listo (Secrets)
+Semilla aplicada: {'usuarios': 9, 'donantes': 12, 'productos': 20, 'lotes': 160, 'hogares': 120, 'despensas': 85, 'despensa_detalle': 204, 'outbox': 788}
+deployment "backend" successfully rolled out
+deployment "outbox" successfully rolled out
+deployment "frontend" successfully rolled out
+[418s] pasos 5-6 listos (datos, migraciones, app)
+k3d-ra-dev-server-0: firewall aplicado
+[418s] firewall aplicado
+versión: {"version":"1.1.1","ambiente":"dev"}
+pruebas funcionales: 22 passed in 1.33s
+TIEMPO_TOTAL=421s
+== Secretos en Git: 0 archivos (esperado 0)
+== Verificación .gitignore (git add --dry-run): archivos sensibles que se agregarían
+0
+== Archivos ignorados presentes en disco (no se versionan):
+!! backups/
+!! docs/informe/node_modules/
+!! frontend/node_modules/
+!! secrets/
+== Total de archivos que sí se versionarían: 277

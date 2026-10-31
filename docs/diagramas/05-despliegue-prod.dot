@@ -1,0 +1,43 @@
+digraph prod {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=13, compound=true, nodesep=0.25, ranksep=0.6, labelloc=t, label="Arquitectura de implementación — PRODUCCIÓN de laboratorio (clúster k3d-ra-prod)", bgcolor=white, pad=0.3];
+  node [shape=box, style="rounded,filled", fillcolor="#ffffff", fontname="DejaVu Sans", fontsize=10, color="#5d6b64"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#5d6b64"];
+  usuario [label="Usuario / navegador", shape=oval, fillcolor="#e8f3ed"];
+  admin [label="Administrador\nkubectl · helm\nk3d-ra-prod → 127.0.0.1:6552\nport-forward Grafana/Prometheus", fillcolor="#fff3d6"];
+  reg [label="Registro OCI\nk3d-ra-registry.localhost:5050\n(imágenes por digest)", shape=cylinder, fillcolor="#f3f0ff"];
+  vip [label="IP externa MetalLB\n172.31.0.200 (L2/ARP)\n:80 → 301 · :443 TLS", fillcolor="#e5effb"];
+  subgraph cluster_host { label="Equipo físico único (Docker) — red ra-prod-net 172.31.0.0/24 — firewall RA-FW en cada nodo"; style="rounded,dashed"; color="#999999";
+    serverlb [label="k3d serverlb 172.31.0.6\nproxy de la API"];
+    subgraph cluster_cp { label="k3d-ra-prod-server-0 · 172.31.0.3 · control plane · taint NoSchedule · 4 GiB / 2 vCPU"; style="rounded,filled"; fillcolor="#f6f8f7"; color="#5d6b64";
+      apis [label="API server · scheduler · controller-manager\nkine/SQLite · Secrets cifrados (aescbc) · auditoría"];
+      sys [label="CoreDNS 10.53.0.10 · metrics-server\nlocal-path-provisioner (StorageClass local-path)\ncalico-node · metallb speaker"];
+    }
+    subgraph cluster_w0 { label="k3d-ra-prod-agent-0 · 172.31.0.4 · worker · 8 GiB / 4 vCPU"; style="rounded,filled"; fillcolor="#f6f8f7"; color="#5d6b64";
+      be0 [label="backend\n(réplica 1)", fillcolor="#e8f3ed"]; fe0 [label="frontend\n(réplica 1)", fillcolor="#e8f3ed"];
+      ob [label="outbox worker", fillcolor="#e8f3ed"];
+      pg [label="StatefulSet postgres-0\nTLS 1.3 · hostssl", fillcolor="#e5effb"]; pv1 [label="PVC datos-postgres-0\n5Gi RWO local-path", shape=cylinder, fillcolor="#e5effb"];
+      mon [label="monitoring: Prometheus · Alertmanager\nGrafana · Loki · kube-state-metrics\n(ubicación según scheduler)", fillcolor="#fff3d6"];
+    }
+    subgraph cluster_w1 { label="k3d-ra-prod-agent-1 · 172.31.0.5 · worker · 8 GiB / 4 vCPU"; style="rounded,filled"; fillcolor="#f6f8f7"; color="#5d6b64";
+      be1 [label="backend\n(réplica 2)", fillcolor="#e8f3ed"]; fe1 [label="frontend\n(réplica 2)", fillcolor="#e8f3ed"];
+      mg [label="StatefulSet mongo-0\nrequireTLS", fillcolor="#e5effb"]; pv2 [label="PVC datos-mongo-0\n5Gi RWO local-path", shape=cylinder, fillcolor="#e5effb"];
+      exp [label="postgres-exporter\nmongodb-exporter", fillcolor="#fff3d6"];
+      tr [label="Traefik v3 (Gateway API)\nGatewayClass traefik", fillcolor="#e5effb"];
+      bk [label="CronJob respaldo 02:00\nPVC respaldos 5Gi (volumen distinto)", fillcolor="#fde7e4"];
+    }
+    ds [label="DaemonSets en todos los nodos:\ncalico-node · metallb-speaker · node-exporter · alloy (logs → Loki)", shape=note, fillcolor="#ffffff"];
+  }
+  hpa [label="HPA backend autoscaling/v2\nmin 2 · max 6 · CPU 60 %\nPDB minAvailable 1 · topologySpread maxSkew 1", shape=note, fillcolor="#fff3d6"];
+  usuario -> vip [label="HTTPS redalimenta.172-31-0-200.sslip.io"];
+  vip -> tr;
+  tr -> fe0 [label="HTTPRoute /"]; tr -> fe1;
+  tr -> be0 [label="HTTPRoute /api → Service backend"]; tr -> be1;
+  be0 -> pg [label="5432 TLS"]; be1 -> pg; ob -> pg;
+  be0 -> mg [label="27017 TLS"]; be1 -> mg; ob -> mg [label="upsert por event_id"];
+  pg -> pv1 [arrowhead=none]; mg -> pv2 [arrowhead=none];
+  exp -> pg [style=dashed]; exp -> mg [style=dashed]; mon -> exp [style=dashed, label="scrape"];
+  bk -> pg [style=dotted]; bk -> mg [style=dotted];
+  hpa -> be0 [style=dashed, arrowhead=open]; hpa -> be1 [style=dashed, arrowhead=open];
+  admin -> serverlb -> apis;
+  reg -> be0 [style=dotted, label="pull", constraint=false];
+}

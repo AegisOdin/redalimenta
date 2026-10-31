@@ -1,0 +1,14 @@
+== Origen no autorizado: contenedor 172.31.0.50 en ra-prod-net
+API server directo 172.31.0.3:6443: SIN RESPUESTA (bloqueado)
+kubelet 172.31.0.4:10250: SIN RESPUESTA (bloqueado)
+NodePort Traefik 172.31.0.4:31298: SIN RESPUESTA (bloqueado)
+node-exporter 172.31.0.4:9100: SIN RESPUESTA (bloqueado)
+== Host administrador (172.31.0.1)
+API directo al nodo 172.31.0.3:6443 (no permitido): SIN RESPUESTA (bloqueado/timeout)
+NodePort 172.31.0.4:31298 (no permitido): SIN RESPUESTA (bloqueado/timeout)
+API vía red de administración 127.0.0.1:6552 (permitido): RESPONDE
+Entrada web HTTPS 172.31.0.200:443 (permitido): RESPONDE
+== Contadores de la regla 'descartar resto' por nodo
+k3d-ra-prod-server-0: 8 paquetes descartados
+k3d-ra-prod-agent-0: 0 paquetes descartados
+k3d-ra-prod-agent-1: 8 paquetes descartados

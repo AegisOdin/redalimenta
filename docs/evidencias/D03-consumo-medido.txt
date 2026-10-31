@@ -1,0 +1,43 @@
+# Consumo medido (reposo, prod) 2026-10-31T22:14:34Z
+NAME                   CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+k3d-ra-prod-agent-0    390m         9%       3259Mi          38%         
+k3d-ra-prod-agent-1    291m         7%       2544Mi          30%         
+k3d-ra-prod-server-0   199m         9%       1401Mi          33%         
+NAMESPACE        NAME                                       CPU(cores)   MEMORY(bytes)   
+monitoring       prometheus-kps-prometheus-0                70m          1094Mi          
+monitoring       kps-grafana-5778d4f86d-wkvfn               30m          514Mi           
+monitoring       loki-0                                     18m          257Mi           
+redalimenta      mongo-0                                    90m          117Mi           
+kube-system      calico-kube-controllers-846669895c-bnfd5   23m          78Mi            
+redalimenta      backend-7687b4dfc5-d27lb                   5m           78Mi            
+redalimenta      backend-7687b4dfc5-fk4qh                   4m           77Mi            
+monitoring       alloy-v9jmj                                8m           73Mi            
+kube-system      calico-node-lnwg8                          37m          70Mi            
+monitoring       alloy-vqvzb                                5m           69Mi            
+kube-system      calico-node-xtwr8                          30m          67Mi            
+kube-system      calico-node-mdf2q                          35m          60Mi            
+redalimenta      outbox-77b5db9f88-4zf92                    6m           55Mi            
+redalimenta      postgres-0                                 14m          49Mi            
+monitoring       alertmanager-kps-alertmanager-0            1m           39Mi            
+cert-manager     cert-manager-cainjector-774d7f7994-bwwtx   1m           35Mi            
+metallb-system   metallb-controller-ffcf647c4-pdxpj         2m           33Mi            
+kube-system      metrics-server-778c4649b4-rsx2v            5m           32Mi            
+cert-manager     cert-manager-79b85d4bfb-tj4gn              2m           31Mi            
+metallb-system   metallb-speaker-kglbh                      4m           30Mi            
+metallb-system   metallb-speaker-7pnrx                      6m           30Mi            
+traefik          traefik-57c66f65b9-r72s2                   1m           29Mi            
+metallb-system   metallb-speaker-pkfmk                      4m           28Mi            
+kube-system      coredns-577d995dff-897fp                   3m           28Mi            
+== Requests asignados por nodo
+Name:               k3d-ra-prod-agent-0
+  cpu                1560m (39%)   0 (0%)
+  memory             2030Mi (24%)  4714Mi (56%)
+Name:               k3d-ra-prod-agent-1
+  cpu                980m (24%)    0 (0%)
+  memory             1298Mi (15%)  3584Mi (42%)
+Name:               k3d-ra-prod-server-0
+  cpu                270m (13%)  0 (0%)
+  memory             32Mi (0%)   0 (0%)
+== dev
+NAME                  CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+k3d-ra-dev-server-0   324m         16%      2277Mi          54%         

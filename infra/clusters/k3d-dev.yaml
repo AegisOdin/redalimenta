@@ -1,0 +1,54 @@
+# Clúster ra-dev: 1 nodo (server que también ejecuta cargas)
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: ra-dev
+servers: 1
+agents: 0
+image: rancher/k3s:v1.37.1-k3s1
+network: ra-dev-net
+kubeAPI:
+  hostIP: "127.0.0.1"   # API solo accesible desde el equipo administrador
+  hostPort: "6551"
+registries:
+  use: ["k3d-ra-registry.localhost:5050"]
+volumes:
+  - volume: /home/odin/Documents/Proyecto_Kubernetes/redalimenta/infra/clusters/audit-policy.yaml:/etc/rancher/k3s/audit-policy.yaml
+    nodeFilters: ["server:*"]
+options:
+  k3d:
+    wait: true
+    timeout: "360s"
+  runtime:
+    serversMemory: "4g"
+
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false
+  k3s:
+    extraArgs:
+      - arg: --flannel-backend=none          # CNI: Calico
+        nodeFilters: ["server:*"]
+      - arg: --disable-network-policy        # NetworkPolicy la aplica Calico
+        nodeFilters: ["server:*"]
+      - arg: --disable=traefik               # Traefik se instala con Helm (Gateway API)
+        nodeFilters: ["server:*"]
+      - arg: --disable=servicelb             # IP externa: MetalLB
+        nodeFilters: ["server:*"]
+      - arg: --cluster-cidr=10.42.0.0/16
+        nodeFilters: ["server:*"]
+      - arg: --service-cidr=10.43.0.0/16
+        nodeFilters: ["server:*"]
+      - arg: --cluster-dns=10.43.0.10
+        nodeFilters: ["server:*"]
+      - arg: --secrets-encryption            # cifrado de Secrets en reposo (aescbc)
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-policy-file=/etc/rancher/k3s/audit-policy.yaml
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log
+        nodeFilters: ["server:*"]
+      - arg: --kube-apiserver-arg=audit-log-maxage=7
+        nodeFilters: ["server:*"]
+      - arg: --kubelet-arg=system-reserved=cpu=10   # simula 2 vCPU asignables en el server
+        nodeFilters: ["server:*"]
+

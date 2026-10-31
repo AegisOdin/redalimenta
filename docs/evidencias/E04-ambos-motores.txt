@@ -1,0 +1,46 @@
+# E04 Uso funcional y trazable de ambos motores (dev) 2026-10-31T20:48:33Z
+== PostgreSQL: último evento confirmado en la tabla outbox (misma transacción que el cambio de negocio)
+ id  |               event_id               |      tipo      |    folio     |  hogar   |         publicado_en          
+-----+--------------------------------------+----------------+--------------+----------+-------------------------------
+ 865 | e0d7ed69-4282-48e8-9813-e853b5dd68c4 | lote_entregado | L-2610-01009 | T-68A780 | 2026-10-31 20:42:39.665407+00
+(1 row)
+
+== MongoDB: el mismo event_id en bitacora_eventos y dentro del expediente del lote
+{
+  ts: '2026-10-31T20:42:39.592078+00:00',
+  tipo: 'lote_entregado',
+  lote_id: 170,
+  cantidad: 2,
+  despensa: 'D-2610-01003',
+  event_id: 'e0d7ed69-4282-48e8-9813-e853b5dd68c4',
+  hogar_id: 128,
+  folio_lote: 'L-2610-01009',
+  usuario_id: 6,
+  hogar_clave: 'T-68A780'
+}
+{
+  folio_lote: 'L-2610-01009',
+  estado: 'retirado',
+  hogares_receptores: [
+    {
+      hogar_id: 128,
+      clave: 'T-68A780',
+      despensa: 'D-2610-01003'
+    }
+  ]
+}
+== Consulta '¿qué hogares recibieron el lote?' usa índice (explain)
+plan: "ix_folio_tipo"  docsExaminados: 6  devueltos: 6
+== Consulta FEFO en PostgreSQL usa el índice parcial ix_lotes_producto_fefo
+SET
+                                                                      QUERY PLAN                                                                       
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ LockRows  (cost=11.72..11.78 rows=5 width=111)
+   ->  Sort  (cost=11.72..11.73 rows=5 width=111)
+         Sort Key: fecha_caducidad, id
+         ->  Bitmap Heap Scan on lotes  (cost=4.21..11.66 rows=5 width=111)
+               Recheck Cond: ((producto_id = 1) AND (fecha_caducidad >= CURRENT_DATE) AND ((estado)::text = ANY ('{disponible,prioritario}'::text[])))
+== Validación JSON Schema de MongoDB rechaza documentos inválidos
+rechazado: Document failed validation
+== Índice único event_id impide duplicados
+rechazado: 

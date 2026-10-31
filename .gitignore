@@ -1,0 +1,14 @@
+# secretos y credenciales: nunca en git
+secrets/
+*.env
+.env*
+*kubeconfig*
+*.pem
+*.key
+*.crt
+backups/
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.venv/

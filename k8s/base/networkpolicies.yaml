@@ -1,0 +1,126 @@
+# Denegación inicial de entrada y salida para todo el namespace; después solo flujos explícitos.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: denegar-todo}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: permitir-dns}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+          podSelector: {matchLabels: {k8s-app: kube-dns}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+---
+# Entrada web: solo el controlador Traefik llega a frontend y backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: frontend-entrada}
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: frontend}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: traefik}}}]
+      ports: [{port: 8080}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: backend-entrada}
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: backend}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: traefik}}}]
+      ports: [{port: 8000}]
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: monitoring}}}]
+      ports: [{port: 8000}]
+    - from: [{podSelector: {matchLabels: {rol: pruebas}}}]     # Pod generador de carga / pruebas
+      ports: [{port: 8000}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: app-salida-a-datos}
+spec:
+  podSelector: {matchExpressions: [{key: rol, operator: In, values: [api, worker, migraciones, tareas]}]}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: postgres}}}]
+      ports: [{port: 5432}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: mongo}}}]
+      ports: [{port: 27017}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: postgres-entrada}
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: postgres}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchExpressions: [{key: rol, operator: In, values: [api, worker, migraciones, tareas, respaldos]}]}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: postgres-exporter}}
+      ports: [{port: 5432}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: mongo-entrada}
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: mongo}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchExpressions: [{key: rol, operator: In, values: [api, worker, migraciones, respaldos]}]}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: mongodb-exporter}}
+      ports: [{port: 27017}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: respaldos-salida}
+spec:
+  podSelector: {matchLabels: {rol: respaldos}}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: postgres}}}]
+      ports: [{port: 5432}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: mongo}}}]
+      ports: [{port: 27017}]
+---
+# Métricas: solo Prometheus (namespace monitoring) llega a los puertos de métricas
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: metricas-entrada}
+spec:
+  podSelector: {matchExpressions: [{key: app.kubernetes.io/name, operator: In, values: [outbox, postgres-exporter, mongodb-exporter]}]}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: monitoring}}}]
+      ports: [{port: 9100}, {port: 9187}, {port: 9216}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: exporters-salida}
+spec:
+  podSelector: {matchExpressions: [{key: app.kubernetes.io/name, operator: In, values: [postgres-exporter, mongodb-exporter]}]}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: postgres}}}]
+      ports: [{port: 5432}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: mongo}}}]
+      ports: [{port: 27017}]
+---
+# Generador de carga/pruebas: solo hacia el backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: pruebas-salida}
+spec:
+  podSelector: {matchLabels: {rol: pruebas}}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: backend}}}]
+      ports: [{port: 8000}]

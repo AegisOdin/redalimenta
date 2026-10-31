@@ -1,0 +1,31 @@
+stateDiagram-v2
+  direction LR
+  state "Despensa" as D {
+    [*] --> Solicitada: trabajador social
+    Solicitada --> Aprobada: trabajador social (elegible 14 días)
+    Solicitada --> Rechazada: trabajador social
+    Aprobada --> EnPreparacion: coordinador (armado FEFO, sin alérgenos)
+    Aprobada --> Cancelada: admin / t. social
+    EnPreparacion --> Lista: coordinador
+    EnPreparacion --> Cancelada: retiro sanitario
+    Lista --> Entregada: voluntario de la ruta
+    Lista --> NoRecogida: 72 h (tarea diaria) / coordinador
+    Lista --> Cancelada: retiro sanitario
+    Entregada --> [*]
+  }
+  state "Lote" as L {
+    [*] --> Recibido
+    Recibido --> EnInspeccion
+    Recibido --> Disponible: inspección OK
+    EnInspeccion --> Disponible: inspección OK
+    EnInspeccion --> Rechazado: >5 °C refrigerado / falla visual
+    Disponible --> Prioritario: ≤ 3 días para caducar
+    Disponible --> Asignado: existencia agotada en despensas
+    Prioritario --> Asignado
+    Prioritario --> Merma: vencido
+    Disponible --> Merma: vencido
+    Asignado --> Entregado
+    Disponible --> Retirado: retiro sanitario
+    Prioritario --> Retirado
+    Asignado --> Retirado
+  }

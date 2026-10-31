@@ -1,0 +1,87 @@
+namespace/redalimenta serverside-applied
+resourcequota/cuota-redalimenta serverside-applied
+serviceaccount/backend serverside-applied
+serviceaccount/exporters serverside-applied
+serviceaccount/frontend serverside-applied
+serviceaccount/migraciones serverside-applied
+serviceaccount/mongo serverside-applied
+serviceaccount/outbox serverside-applied
+serviceaccount/postgres serverside-applied
+serviceaccount/respaldos serverside-applied
+serviceaccount/tareas serverside-applied
+role.rbac.authorization.k8s.io/desplegador serverside-applied
+role.rbac.authorization.k8s.io/lector serverside-applied
+role.rbac.authorization.k8s.io/operador serverside-applied
+rolebinding.rbac.authorization.k8s.io/desplegadores serverside-applied
+rolebinding.rbac.authorization.k8s.io/lectores serverside-applied
+rolebinding.rbac.authorization.k8s.io/operadores serverside-applied
+configmap/app-config serverside-applied
+configmap/mongo-init serverside-applied
+configmap/postgres-init serverside-applied
+configmap/respaldo-scripts serverside-applied
+service/backend serverside-applied
+service/frontend serverside-applied
+service/mongo serverside-applied
+service/mongodb-exporter serverside-applied
+service/outbox-metrics serverside-applied
+service/postgres serverside-applied
+service/postgres-exporter serverside-applied
+limitrange/limites-por-defecto serverside-applied
+persistentvolumeclaim/respaldos serverside-applied
+deployment.apps/backend serverside-applied
+deployment.apps/frontend serverside-applied
+deployment.apps/mongodb-exporter serverside-applied
+deployment.apps/outbox serverside-applied
+deployment.apps/postgres-exporter serverside-applied
+statefulset.apps/mongo serverside-applied
+statefulset.apps/postgres serverside-applied
+cronjob.batch/respaldo serverside-applied
+cronjob.batch/tarea-diaria serverside-applied
+poddisruptionbudget.policy/backend serverside-applied
+poddisruptionbudget.policy/frontend serverside-applied
+horizontalpodautoscaler.autoscaling/backend serverside-applied
+job.batch/migraciones serverside-applied
+certificate.cert-manager.io/mongo-tls serverside-applied
+certificate.cert-manager.io/postgres-tls serverside-applied
+certificate.cert-manager.io/redalimenta-tls serverside-applied
+gateway.gateway.networking.k8s.io/redalimenta serverside-applied
+httproute.gateway.networking.k8s.io/redalimenta serverside-applied
+httproute.gateway.networking.k8s.io/redirigir-https serverside-applied
+prometheusrule.monitoring.coreos.com/redalimenta-alertas serverside-applied
+servicemonitor.monitoring.coreos.com/redalimenta serverside-applied
+networkpolicy.networking.k8s.io/app-salida-a-datos serverside-applied
+networkpolicy.networking.k8s.io/backend-entrada serverside-applied
+networkpolicy.networking.k8s.io/denegar-todo serverside-applied
+networkpolicy.networking.k8s.io/exporters-salida serverside-applied
+networkpolicy.networking.k8s.io/frontend-entrada serverside-applied
+networkpolicy.networking.k8s.io/metricas-entrada serverside-applied
+networkpolicy.networking.k8s.io/mongo-entrada serverside-applied
+networkpolicy.networking.k8s.io/permitir-dns serverside-applied
+networkpolicy.networking.k8s.io/postgres-entrada serverside-applied
+networkpolicy.networking.k8s.io/pruebas-salida serverside-applied
+networkpolicy.networking.k8s.io/respaldos-salida serverside-applied
+partitioned roll out complete: 1 new pods have been updated...
+partitioned roll out complete: 1 new pods have been updated...
+job.batch/migraciones condition met
+MongoDB: colecciones e índices listos
+Semilla ya aplicada; no se hace nada (idempotente)
+Waiting for deployment "backend" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "backend" rollout to finish: 1 old replicas are pending termination...
+deployment "backend" successfully rolled out
+deployment "outbox" successfully rolled out
+deployment "frontend" successfully rolled out
+NAME                                 READY   STATUS        RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+backend-58d879bd4b-jxdn4             1/1     Running       0          9s     10.52.147.59   k3d-ra-prod-agent-1   <none>           <none>
+backend-58d879bd4b-p9w64             1/1     Running       0          5s     10.52.3.46     k3d-ra-prod-agent-0   <none>           <none>
+backend-764b695dd4-4bssv             1/1     Terminating   0          34s    10.52.3.43     k3d-ra-prod-agent-0   <none>           <none>
+backend-764b695dd4-jnnhb             1/1     Terminating   0          37s    10.52.147.57   k3d-ra-prod-agent-1   <none>           <none>
+frontend-6f4d88d4c5-5vrkx            1/1     Running       0          8s     10.52.147.60   k3d-ra-prod-agent-1   <none>           <none>
+frontend-6f4d88d4c5-zxm7r            1/1     Running       0          9s     10.52.3.44     k3d-ra-prod-agent-0   <none>           <none>
+migraciones-lnbwj                    0/1     Completed     0          9s     10.52.3.45     k3d-ra-prod-agent-0   <none>           <none>
+mongo-0                              1/1     Running       0          10m    10.52.147.45   k3d-ra-prod-agent-1   <none>           <none>
+mongodb-exporter-68ff85dbff-7wszd    1/1     Running       0          104m   10.52.147.20   k3d-ra-prod-agent-1   <none>           <none>
+outbox-77b5db9f88-8vhvt              1/1     Running       0          39s    10.52.147.56   k3d-ra-prod-agent-1   <none>           <none>
+postgres-0                           1/1     Running       0          18m    10.52.3.30     k3d-ra-prod-agent-0   <none>           <none>
+postgres-exporter-76d8c7b59d-tkzrz   1/1     Running       0          104m   10.52.147.21   k3d-ra-prod-agent-1   <none>           <none>
+respaldo-manual-1-bwzg6              0/1     Completed     0          94m    10.52.147.27   k3d-ra-prod-agent-1   <none>           <none>
+respaldo-tras-incidente-p89tn        0/1     Completed     0          17m    10.52.147.44   k3d-ra-prod-agent-1   <none>           <none>

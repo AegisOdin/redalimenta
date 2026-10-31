@@ -1,0 +1,56 @@
+# Entrada HTTPS con Gateway API (implementación: Traefik, GatewayClass "traefik").
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: {name: redalimenta-tls}
+spec:
+  secretName: redalimenta-tls
+  dnsNames: [HOSTNAME]
+  duration: 2160h
+  renewBefore: 360h
+  privateKey: {algorithm: ECDSA, size: 256, rotationPolicy: Always}
+  issuerRef: {name: redalimenta-ca, kind: ClusterIssuer}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata: {name: redalimenta}
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 8000
+      hostname: HOSTNAME
+      allowedRoutes: {namespaces: {from: Same}}
+    - name: https
+      protocol: HTTPS
+      port: 8443
+      hostname: HOSTNAME
+      tls:
+        mode: Terminate
+        certificateRefs: [{kind: Secret, name: redalimenta-tls}]
+      allowedRoutes: {namespaces: {from: Same}}
+---
+# HTTP (80) solo redirige a HTTPS
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: redirigir-https}
+spec:
+  parentRefs: [{name: redalimenta, sectionName: http}]
+  hostnames: [HOSTNAME]
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect: {scheme: https, statusCode: 301}
+---
+# SPA: /api -> backend ; resto -> frontend (Nginx con archivos estáticos)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: redalimenta}
+spec:
+  parentRefs: [{name: redalimenta, sectionName: https}]
+  hostnames: [HOSTNAME]
+  rules:
+    - matches: [{path: {type: PathPrefix, value: /api}}]
+      backendRefs: [{name: backend, port: 8000}]
+    - matches: [{path: {type: PathPrefix, value: /}}]
+      backendRefs: [{name: frontend, port: 8080}]

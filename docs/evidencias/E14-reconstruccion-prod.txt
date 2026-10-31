@@ -1,0 +1,39 @@
+# E14 Reconstrucción de PRODUCCIÓN desde recursos limpios 2026-10-31T22:33:18Z
+Precondición: se elimina ra-prod (nodos, PVC, Secrets, CA, observabilidad). Se conservan: repositorio, registro OCI, secrets/prod.env y respaldos extraídos.
+INFO[0005] Successfully deleted cluster ra-prod!        
+[6s] clúster eliminado
+NAME                   STATUS   ROLES           AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+k3d-ra-prod-agent-0    Ready    <none>          2m31s   v1.37.1+k3s1   172.31.0.4    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-agent-1    Ready    <none>          2m31s   v1.37.1+k3s1   172.31.0.5    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-server-0   Ready    control-plane   2m34s   v1.37.1+k3s1   172.31.0.3    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+[169s] paso 2: clúster 1+2 y Calico
+NAME      TYPE           CLUSTER-IP    EXTERNAL-IP    PORT(S)                      AGE
+traefik   LoadBalancer   10.53.43.49   172.31.0.200   80:31500/TCP,443:31642/TCP   28s
+[302s] paso 3: MetalLB, cert-manager, Traefik (2 réplicas + PDB)
+prometheus-kps-prometheus-0               2/2     Running   0          4m12s
+[585s] observabilidad
+configmap/ca-laboratorio aplicado
+[587s] paso 4: Secrets
+Semilla aplicada: {'usuarios': 9, 'donantes': 12, 'productos': 20, 'lotes': 160, 'hogares': 120, 'despensas': 85, 'despensa_detalle': 204, 'outbox': 788}
+deployment "backend" successfully rolled out
+deployment "outbox" successfully rolled out
+deployment "frontend" successfully rolled out
+[720s] pasos 5-7: datos, migraciones, app (overlay con digest 1.1.1)
+k3d-ra-prod-agent-0: firewall aplicado
+[720s] firewall
+versión: {"version":"1.1.1","ambiente":"prod"}
+pruebas funcionales: 22 passed, 1 skipped in 1.48s
+   backend-58d879bd4b-9c2cv Running k3d-ra-prod-agent-1
+   backend-58d879bd4b-v84cn Running k3d-ra-prod-agent-0
+   frontend-6f4d88d4c5-pd4s5 Running k3d-ra-prod-agent-0
+   frontend-6f4d88d4c5-tkskg Running k3d-ra-prod-agent-1
+   migraciones-jkk2d Completed 2m15s
+   mongo-0 Running k3d-ra-prod-agent-1
+   mongodb-exporter-68ff85dbff-k5rjq Running k3d-ra-prod-agent-0
+   outbox-77b5db9f88-chjcq Running k3d-ra-prod-agent-1
+   postgres-0 Running k3d-ra-prod-agent-0
+   postgres-exporter-76d8c7b59d-dhzvw Running k3d-ra-prod-agent-0
+horizontalpodautoscaler.autoscaling/backend   Deployment/backend   cpu: 2%/60%   2     6     2     2m15s
+poddisruptionbudget.policy/backend    1     N/A   1     2m15s
+poddisruptionbudget.policy/frontend   1     N/A   1     2m15s
+TIEMPO_TOTAL=723s

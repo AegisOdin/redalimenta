@@ -1,0 +1,21 @@
+Chain RA-FW (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+1     6991 1856K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED /* 01 establecidas */
+2       43  2580 RETURN     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 02 loopback */
+3        0     0 RETURN     all  --  cali+  *       0.0.0.0/0            0.0.0.0/0            /* 03 Pods locales (NetworkPolicy) */
+4        0     0 RETURN     all  --  vxlan.calico *       0.0.0.0/0            0.0.0.0/0            /* 03 Pods remotos VXLAN */
+5        0     0 RETURN     udp  --  *      *       172.31.0.3           0.0.0.0/0            udp dpt:4789 /* 04 VXLAN Calico entre nodos */
+6        0     0 RETURN     udp  --  *      *       172.31.0.4           0.0.0.0/0            udp dpt:4789 /* 04 VXLAN Calico entre nodos */
+7       45 16835 RETURN     udp  --  *      *       172.31.0.5           0.0.0.0/0            udp dpt:4789 /* 04 VXLAN Calico entre nodos */
+8        0     0 RETURN     tcp  --  *      *       172.31.0.3           0.0.0.0/0            multiport dports 6443,6444,10250,7946,9100,9099 /* 05 control plane, kubelet, MetalLB, node-exporter entre nodos */
+9        1    60 RETURN     tcp  --  *      *       172.31.0.4           0.0.0.0/0            multiport dports 6443,6444,10250,7946,9100,9099 /* 05 control plane, kubelet, MetalLB, node-exporter entre nodos */
+10       8   480 RETURN     tcp  --  *      *       172.31.0.5           0.0.0.0/0            multiport dports 6443,6444,10250,7946,9100,9099 /* 05 control plane, kubelet, MetalLB, node-exporter entre nodos */
+11       0     0 RETURN     udp  --  *      *       172.31.0.3           0.0.0.0/0            udp dpt:7946 /* 05 memberlist MetalLB */
+12       0     0 RETURN     udp  --  *      *       172.31.0.4           0.0.0.0/0            udp dpt:7946 /* 05 memberlist MetalLB */
+13       0     0 RETURN     udp  --  *      *       172.31.0.5           0.0.0.0/0            udp dpt:7946 /* 05 memberlist MetalLB */
+14       5   300 RETURN     tcp  --  *      *       172.31.0.6           0.0.0.0/0            tcp dpt:6443 /* 06 API desde serverlb (red de administración) */
+15       0     0 RETURN     tcp  --  *      *       10.52.0.0/16         0.0.0.0/0            multiport dports 6443,10250,9100 /* 07 Pods hacia servicios del nodo */
+16       0     0 RETURN     icmp --  *      *       172.31.0.3           0.0.0.0/0            /* 08 ICMP entre nodos */
+17       0     0 RETURN     icmp --  *      *       172.31.0.4           0.0.0.0/0            /* 08 ICMP entre nodos */
+18       0     0 RETURN     icmp --  *      *       172.31.0.5           0.0.0.0/0            /* 08 ICMP entre nodos */
+19       8   480 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 99 descartar resto */

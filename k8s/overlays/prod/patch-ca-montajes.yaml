@@ -1,0 +1,65 @@
+# Los clientes verifican la identidad de PostgreSQL y MongoDB con la CA del ambiente (solo el certificado público).
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: backend}
+spec:
+  template:
+    spec:
+      containers:
+        - name: backend
+          volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+      volumes: [{name: ca, configMap: {name: ca-laboratorio}}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: outbox}
+spec:
+  template:
+    spec:
+      containers:
+        - name: outbox
+          volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+      volumes: [{name: ca, configMap: {name: ca-laboratorio}}]
+---
+apiVersion: batch/v1
+kind: Job
+metadata: {name: migraciones}
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrar
+          volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+      volumes: [{name: ca, configMap: {name: ca-laboratorio}}]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: {name: tarea-diaria}
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: tarea
+              volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+          volumes: [{name: ca, configMap: {name: ca-laboratorio}}]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: {name: respaldo}
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          initContainers:
+            - name: postgres
+              env:
+                - {name: PGSSLMODE, value: verify-full}
+                - {name: PGSSLROOTCERT, value: /etc/redalimenta-ca/ca.crt}
+              volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+          containers:
+            - name: mongo
+              volumeMounts: [{name: ca, mountPath: /etc/redalimenta-ca, readOnly: true}]
+          volumes: [{name: ca, configMap: {name: ca-laboratorio}}]

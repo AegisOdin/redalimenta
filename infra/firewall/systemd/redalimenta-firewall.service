@@ -1,0 +1,6 @@
+[Unit]
+Description=RedAlimenta: asegurar firewall RA-FW en los nodos k3d
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=%h/Documents/Proyecto_Kubernetes/redalimenta/infra/firewall/asegurar-firewall.sh

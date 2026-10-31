@@ -1,0 +1,39 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<1000' p(95)=32.8ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 571     1.899923/s
+    checks_succeeded...: 100.00% 571 out of 571
+    checks_failed......: 0.00%   0 out of 571
+
+    ✓ login 200
+    ✓ lotes 200
+    ✓ hogares 200
+
+    HTTP
+    http_req_duration..............: avg=13.53ms  p(50)=8.95ms   p(90)=29.76ms p(95)=32.8ms   p(99)=38.2ms   max=74.13ms 
+      { expected_response:true }...: avg=13.53ms  p(50)=8.95ms   p(90)=29.76ms p(95)=32.8ms   p(99)=38.2ms   max=74.13ms 
+    http_req_failed................: 0.00%  0 out of 571
+    http_reqs......................: 571    1.899923/s
+
+    EXECUTION
+    iteration_duration.............: avg=527.88ms p(50)=519.12ms p(90)=558.2ms p(95)=562.23ms p(99)=568.55ms max=572.92ms
+    iterations.....................: 285    0.948298/s
+    vus............................: 1      min=0        max=1
+    vus_max........................: 2      min=2        max=2
+
+    NETWORK
+    data_received..................: 1.6 MB 5.4 kB/s
+    data_sent......................: 41 kB  137 B/s
+
+
+

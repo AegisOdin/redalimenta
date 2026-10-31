@@ -1,0 +1,104 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: {name: redalimenta}
+spec:
+  selector:
+    matchExpressions: [{key: app.kubernetes.io/name, operator: In, values: [backend, outbox, postgres-exporter, mongodb-exporter]}]
+  endpoints:
+    - {port: http, path: /metrics, interval: 15s}
+    - {port: metrics, path: /metrics, interval: 15s}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: {name: redalimenta-alertas}
+spec:
+  groups:
+    - name: redalimenta.disponibilidad
+      rules:
+        - alert: AplicacionIndisponible
+          expr: sum(kube_deployment_status_replicas_available{namespace="redalimenta",deployment=~"backend|frontend"}) by (deployment) < 1
+          for: 1m
+          labels: {severity: critical}
+          annotations:
+            summary: "{{ $labels.deployment }} sin réplicas disponibles"
+            accion: "kubectl -n redalimenta describe deploy {{ $labels.deployment }}; revisar eventos, imagen y readiness (manual D08 §1)"
+        - alert: NodoNoDisponible
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 1m
+          labels: {severity: critical}
+          annotations:
+            summary: "Nodo {{ $labels.node }} NotReady"
+            accion: "Verificar contenedor del nodo, kubelet y capacidad del otro worker (manual D08 §2)"
+        - alert: BaseDeDatosCaida
+          expr: (pg_up == 0) or (mongodb_up == 0) or (redalimenta_dependency_up == 0)
+          for: 1m
+          labels: {severity: critical}
+          annotations:
+            summary: "Dependencia de datos no disponible ({{ $labels.job }} {{ $labels.dependency }})"
+            accion: "Revisar StatefulSet, PVC y logs del motor; el outbox acumula eventos de MongoDB (manual D08 §4)"
+    - name: redalimenta.errores
+      rules:
+        - alert: TasaDeErroresElevada
+          expr: |
+            sum(rate(redalimenta_http_requests_total{status=~"5.."}[2m]))
+              / clamp_min(sum(rate(redalimenta_http_requests_total[2m])), 0.001) > 0.05
+          for: 1m
+          labels: {severity: warning}
+          annotations:
+            summary: "Más del 5% de solicitudes con error 5xx"
+            accion: "Correlacionar con logs (Loki, request_id) y salud de BD (manual D08 §3)"
+        - alert: OutboxAtrasado
+          expr: max(redalimenta_outbox_pendientes) > 50
+          for: 5m
+          labels: {severity: warning}
+          annotations:
+            summary: "{{ $value }} eventos sin publicar en MongoDB"
+            accion: "Revisar conectividad a MongoDB y logs del Deployment outbox"
+    - name: redalimenta.capacidad
+      rules:
+        - alert: SaturacionDeRecursos
+          expr: |
+            (kube_horizontalpodautoscaler_status_current_replicas{namespace="redalimenta"}
+              >= kube_horizontalpodautoscaler_spec_max_replicas{namespace="redalimenta"})
+            or (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.85
+            or (sum by (node) (container_memory_working_set_bytes{container!="",pod!=""})
+                / on (node) group_left kube_node_status_allocatable{resource="memory"}) > 0.90
+          for: 3m
+          labels: {severity: warning}
+          annotations:
+            summary: "Saturación: HPA en máximo o nodo con CPU/memoria alta"
+            accion: "Revisar Pending, capacidad de workers y cuello de botella en BD (manual D08 §5)"
+        - alert: PodsPendientes
+          expr: sum(kube_pod_status_phase{namespace="redalimenta",phase="Pending"}) > 0
+          for: 5m
+          labels: {severity: warning}
+          annotations:
+            summary: "Pods sin programar: no hay capacidad o la regla de distribución no se cumple"
+            accion: "kubectl describe pod; revisar requests, cuota y topologySpread"
+    - name: redalimenta.respaldos
+      rules:
+        - alert: RespaldoFallido
+          expr: sum(kube_job_status_failed{namespace="redalimenta",job_name=~"respaldo.*"}) > 0
+          for: 0m
+          labels: {severity: critical}
+          annotations:
+            summary: "Falló un Job de respaldo"
+            accion: "kubectl -n redalimenta logs job/<job> -c postgres / -c mongo; repetir con create job --from=cronjob/respaldo (D09)"
+        - alert: RespaldoVencido
+          expr: |
+            (time() - max(kube_cronjob_status_last_successful_time{namespace="redalimenta",cronjob="respaldo"}) > 26*3600)
+            or absent(kube_cronjob_status_last_successful_time{namespace="redalimenta",cronjob="respaldo"})
+          for: 10m
+          labels: {severity: warning}
+          annotations:
+            summary: "No hay respaldo válido en las últimas 26 h (RPO 24 h)"
+            accion: "Lanzar respaldo manual y revisar el CronJob (D09)"
+    - name: redalimenta.seguridad
+      rules:
+        - alert: CertificadoPorExpirar
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 7*24*3600
+          for: 10m
+          labels: {severity: warning}
+          annotations:
+            summary: "El certificado {{ $labels.name }} expira en menos de 7 días"
+            accion: "Revisar Certificate y ClusterIssuer en cert-manager"

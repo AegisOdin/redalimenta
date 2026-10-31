@@ -1,0 +1,16 @@
+# Respaldo dev 2026-10-31T20:43:10Z
+{"motor":"postgres","inicio":1793479384,"fin":1793479385,"segundos":1,"bytes":106848}
+{"motor":"mongo","inicio":1793479386,"fin":1793479386,"segundos":0,"bytes":94208}
+postgres.dump.enc: OK
+mongo.archive.enc: OK
+total 232
+drwx--S--- 2 mongodb mongodb   4096 Oct 31 20:43 .
+drwxrwsrwx 3 root    mongodb   4096 Oct 31 20:43 ..
+-rw------- 1 mongodb mongodb     47 Oct 31 20:43 mongo-conteos.json
+-rw------- 1 mongodb mongodb  94208 Oct 31 20:43 mongo.archive.enc
+-rw------- 1 mongodb mongodb     82 Oct 31 20:43 mongo.json
+-rw------- 1 mongodb mongodb     84 Oct 31 20:43 mongo.sha256
+-rw------- 1 mongodb mongodb    146 Oct 31 20:43 postgres-conteos.json
+-rw------- 1 mongodb mongodb 106848 Oct 31 20:43 postgres.dump.enc
+-rw------- 1 mongodb mongodb     86 Oct 31 20:43 postgres.json
+-rw------- 1 mongodb mongodb     84 Oct 31 20:43 postgres.sha256

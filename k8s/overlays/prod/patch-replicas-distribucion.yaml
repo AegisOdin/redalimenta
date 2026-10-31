@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: backend}
+spec:
+  replicas: 2
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor        # no contar el control plane (taint) como dominio vacío
+          labelSelector: {matchLabels: {app.kubernetes.io/name: backend}}
+          matchLabelKeys: [pod-template-hash]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: frontend}
+spec:
+  replicas: 2
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor        # no contar el control plane (taint) como dominio vacío
+          labelSelector: {matchLabels: {app.kubernetes.io/name: frontend}}
+          matchLabelKeys: [pod-template-hash]

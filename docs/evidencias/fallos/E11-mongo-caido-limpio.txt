@@ -1,0 +1,36 @@
+[16:03:14 +1s] bitacora_eventos antes: 1083
+[16:03:17 +4s] Simulo indisponibilidad: scale statefulset/mongo --replicas=0
+statefulset.apps/mongo scaled
+[16:03:27 +14s] Genero 80 operaciones de negocio (lotes) mientras MongoDB está caído
+    lotes creados con MongoDB caído: 80/80 (la operación del almacén no se detiene)
+    rastreo de lote: HTTP 503 El expediente no está disponible temporalmente (MongoDB). Las operaciones del almacén cont
+[16:03:34 +21s] Eventos en outbox pendientes: 80 · intentos acumulados: 2
+[16:03:34 +21s] Espero 6 min con MongoDB caído para observar alertas BaseDeDatosCaida y OutboxAtrasado
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json,sys;[print("    ALERTA",a["labels"]["alertname"],a["state"],a.get("activeAt","")) for a in json.load(sys.stdin)["data"]["alerts"] if a["labels"]["alertname"] not in ("Watchdog","InfoInhibitor")]
+                                                                                                           ~~~~~~~~~^^^^^^^^^^^
+  File "/usr/lib/python3.14/json/__init__.py", line 298, in load
+    return loads(fp.read(),
+        cls=cls, object_hook=object_hook,
+        parse_float=parse_float, parse_int=parse_int,
+        parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+  File "/usr/lib/python3.14/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.14/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[16:09:34 +381s] Restablezco MongoDB
+statefulset.apps/mongo scaled
+[16:10:05 +412s] Outbox pendiente tras reconexión: 0
+[16:10:06 +413s] Reconciliación: bitacora_eventos 1083 -> 1163 · eventos publicados en PostgreSQL 1163 · event_id duplicados: 0
+[16:10:06 +413s] Reintento forzado (idempotencia): reproyecto los últimos 15 min y verifico que no se duplica nada
+{"ts": "2026-10-31 22:10:08,146", "level": "INFO", "name": "tareas", "message": "reproyeccion", "request_id": "-", "desde": "2026-10-31T21:55:06+00:00", "eventos": 172}
+172 eventos marcados para reproyectar desde 2026-10-31T21:55:06+00:00
+[16:10:12 +419s] Tras reproyección: bitacora_eventos=1163 duplicados=0 eventos repetidos en expedientes=0
+== Impacto en solicitudes (sonda cada 0.25 s)
+solicitudes=1210 correctas=1210 fallidas=0 (0.00%) p95_ok=219 ms

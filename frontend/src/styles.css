@@ -1,0 +1,74 @@
+:root { --verde: #1f6f4a; --verde-2: #e8f3ed; --tinta: #1d2521; --gris: #5d6b64; --borde: #dbe3de; --fondo: #f6f8f7;
+  --ok: #1f7a4d; --ok-bg: #e3f4ea; --warn: #8a5a00; --warn-bg: #fff3d6; --bad: #a3261b; --bad-bg: #fde7e4; --info: #1d5fa8; --info-bg: #e5effb;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--tinta); background: var(--fondo); }
+* { box-sizing: border-box } body { margin: 0 } a { color: var(--verde) }
+button { background: var(--verde); color: #fff; border: 0; border-radius: 8px; padding: .55rem .9rem; font: inherit; font-weight: 600; cursor: pointer }
+button:disabled { opacity: .45; cursor: not-allowed } button.sec { background: #fff; color: var(--tinta); border: 1px solid var(--borde) }
+button.peligro { background: var(--bad) } button.link { background: none; color: var(--gris); font-size: 1.4rem; padding: 0 .3rem }
+input, select, textarea { font: inherit; padding: .5rem .6rem; border: 1px solid var(--borde); border-radius: 8px; background: #fff; width: 100% }
+textarea { min-height: 70px } input:focus, select:focus, textarea:focus { outline: 2px solid #9fd2b7; border-color: var(--verde) }
+.cargando { padding: 3rem; text-align: center }
+.app { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh }
+aside { background: #13261c; color: #dfe9e3; display: flex; flex-direction: column; padding: 1rem .8rem; position: sticky; top: 0; height: 100vh }
+.marca { display: flex; align-items: center; gap: .55rem; font-weight: 800; font-size: 1.15rem; padding: .3rem .5rem 1.2rem } .marca img { width: 30px }
+.marca.grande { font-size: 1.6rem; color: var(--verde); padding: 0 } .marca.grande img { width: 40px }
+nav { display: flex; flex-direction: column; gap: 2px } nav a { color: #cfdcd4; text-decoration: none; padding: .55rem .7rem; border-radius: 8px }
+nav a:hover { background: #1e3a2b } nav a.activo { background: var(--verde); color: #fff; font-weight: 600 }
+.pie-menu { margin-top: auto; padding: .5rem } .amb { display: inline-block; font-size: .78rem; padding: .25rem .5rem; border-radius: 999px; background: #2a4a38 }
+.amb.prod { background: #7a1f16; color: #fff } .amb-login { font-size: .85rem; text-align: center; color: var(--gris) } .amb-login.prod { color: var(--bad); font-weight: 700 }
+main { min-width: 0 } .barra { display: flex; align-items: center; gap: 1rem; padding: .9rem 1.5rem; background: #fff; border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 5 }
+.barra h1 { font-size: 1.25rem; margin: 0; flex: 1 } .quien { display: flex; align-items: center; gap: .8rem } .quien span { display: flex; flex-direction: column; text-align: right; line-height: 1.2 }
+.quien small { color: var(--gris) } .hamb { display: none; background: none; color: var(--tinta); font-size: 1.4rem; padding: 0 .3rem }
+.contenido { padding: 1.4rem 1.5rem; max-width: 1400px }
+.login { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(160deg, #e8f3ed, #f6f8f7 50%) ; padding: 16px }
+.login form { background: #fff; padding: 2rem; border-radius: 16px; width: min(400px, 100%); box-shadow: 0 10px 40px #1f6f4a22; display: flex; flex-direction: column; gap: .9rem }
+.login .sub { margin: -.4rem 0 .4rem; color: var(--gris) } .login .nota { font-size: .8rem; color: var(--gris); text-align: center; margin: 0 }
+.campo { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem } .campo > span { font-weight: 600 } .campo small { color: var(--gris) }
+.check { display: flex; gap: .5rem; align-items: center } .check input { width: auto }
+.alerta { padding: .7rem .9rem; border-radius: 10px; margin-bottom: 1rem; display: flex; justify-content: space-between; gap: 1rem; align-items: start }
+.alerta ul { margin: .3rem 0 0; padding-left: 1.2rem } .alerta.ok { background: var(--ok-bg); color: var(--ok) } .alerta.error { background: var(--bad-bg); color: var(--bad) }
+.alerta.warn { background: var(--warn-bg); color: var(--warn) } .login .alerta { margin: 0 }
+.filtros { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap } .filtros input { max-width: 340px } .filtros select { max-width: 220px }
+.tabla-scroll { overflow-x: auto; background: #fff; border: 1px solid var(--borde); border-radius: 12px }
+table { width: 100%; border-collapse: collapse; font-size: .9rem } th { text-align: left; font-weight: 600; color: var(--gris); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em }
+th, td { padding: .6rem .7rem; border-bottom: 1px solid var(--borde); vertical-align: top } tr:last-child td { border-bottom: 0 }
+tr.clic { cursor: pointer } tr.clic:hover { background: var(--verde-2) } tr.inactivo { opacity: .5 }
+.acciones-fila { white-space: nowrap; text-align: right } .acciones-fila button { padding: .35rem .6rem; font-size: .8rem; margin-left: .3rem }
+.badge { display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .78rem; font-weight: 600; white-space: nowrap }
+.badge.ok { background: var(--ok-bg); color: var(--ok) } .badge.warn { background: var(--warn-bg); color: var(--warn) } .badge.bad { background: var(--bad-bg); color: var(--bad) }
+.badge.info { background: var(--info-bg); color: var(--info) } .badge.neutral { background: #edf0ee; color: var(--gris) }
+.motivo { display: block; color: var(--gris); font-size: .75rem; margin-top: .2rem; max-width: 220px }
+.paginador { display: flex; justify-content: space-between; align-items: center; margin-top: .8rem; color: var(--gris); font-size: .9rem } .paginador div { display: flex; gap: .4rem }
+.modal-fondo { position: fixed; inset: 0; background: #0b1a1255; display: grid; place-items: center; padding: 16px; z-index: 20 }
+.modal { background: #fff; border-radius: 14px; width: min(680px, 100%); max-height: 90vh; overflow: auto; padding: 1.2rem 1.4rem }
+.modal header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem } .modal h3 { margin: 0 }
+.form { display: flex; flex-direction: column; gap: .8rem } .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem }
+.acciones { display: flex; gap: .5rem; justify-content: flex-end; flex-wrap: wrap }
+.chips { border: 1px solid var(--borde); border-radius: 10px; display: flex; flex-wrap: wrap; gap: .4rem; padding: .6rem }
+.chips legend { font-size: .85rem; font-weight: 600; padding: 0 .3rem } .chips label { border: 1px solid var(--borde); border-radius: 999px; padding: .25rem .7rem; cursor: pointer; font-size: .85rem }
+.chips label.on { background: var(--bad-bg); border-color: var(--bad); color: var(--bad) } .chips input { display: none }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .8rem; margin-bottom: 1rem }
+.kpi { background: #fff; border: 1px solid var(--borde); border-radius: 12px; padding: .9rem 1rem; display: flex; flex-direction: column }
+.kpi span { color: var(--gris); font-size: .85rem } .kpi b { font-size: 1.8rem } .kpi.warn b { color: var(--warn) }
+.dos-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem }
+.tarjeta { background: #fff; border: 1px solid var(--borde); border-radius: 12px; padding: 1rem 1.1rem; min-width: 0; overflow-x: auto }
+.tarjeta h2 { font-size: 1.05rem; margin: 0 0 .6rem } .tarjeta h3 { font-size: .95rem; margin: 1rem 0 .4rem } .tit-acc { display: flex; justify-content: space-between; align-items: center }
+.ayuda { color: var(--gris); font-size: .88rem; margin: 0 0 .8rem }
+.ficha { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; margin: 0 } .ficha dt { color: var(--gris); text-transform: capitalize } .ficha dd { margin: 0 }
+.warn-txt { color: var(--warn); font-weight: 600 } .lista { padding-left: 1.1rem; margin: 0 } .lista li { margin: .2rem 0 }
+.timeline { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--borde) } .timeline li { padding: 0 0 .9rem 1rem; position: relative; display: flex; flex-direction: column }
+.timeline li::before { content: ""; position: absolute; left: -7px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--verde) }
+.timeline time { font-size: .78rem; color: var(--gris) } .timeline span { font-size: .85rem; color: var(--gris) }
+.pasos { display: flex; list-style: none; padding: 0; margin: 0 0 1rem; gap: .3rem; flex-wrap: wrap } .pasos li { flex: 1; text-align: center; font-size: .78rem; padding: .4rem; border-radius: 6px; background: #edf0ee; color: var(--gris); min-width: 90px }
+.pasos li.hecho { background: var(--ok-bg); color: var(--ok) } .pasos li.actual { background: var(--verde); color: #fff; font-weight: 700 }
+.transiciones { margin-top: 1rem; border-top: 1px solid var(--borde); padding-top: 1rem; display: flex; flex-direction: column; gap: .7rem }
+.fila-form { display: flex; gap: .5rem; margin-top: .8rem } .fila-form input { max-width: 140px }
+.barras { display: flex; flex-direction: column; gap: .5rem } .barra-fila { display: grid; grid-template-columns: 120px 1fr 90px; gap: .6rem; align-items: center; font-size: .88rem }
+.barra-fila span { text-transform: capitalize } .barra-fila b { text-align: right } .pista { background: #edf0ee; border-radius: 4px; height: 14px } .pista div { background: var(--verde); height: 100%; border-radius: 4px }
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr } aside { position: fixed; left: -260px; width: 240px; z-index: 30; transition: left .2s } aside.abierto { left: 0 }
+  .hamb { display: block } .barra { padding: .7rem 16px } .contenido { padding: 1rem 16px } .quien small { display: none }
+  .dos-col { grid-template-columns: 1fr } .grid2 { grid-template-columns: 1fr }
+  .tabla thead { display: none } .tabla tr { display: block; border-bottom: 1px solid var(--borde); padding: .5rem 0 } .tabla td { display: flex; justify-content: space-between; border: 0; padding: .25rem .8rem }
+  .tabla td[data-l]::before { content: attr(data-l); color: var(--gris); font-size: .8rem; margin-right: 1rem } .acciones-fila { text-align: left; white-space: normal }
+}

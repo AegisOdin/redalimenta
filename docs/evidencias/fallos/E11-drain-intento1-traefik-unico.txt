@@ -1,0 +1,85 @@
+[15:57:22 +3s] Antes del mantenimiento (k3d-ra-prod-agent-1 aloja mongo-0 con volumen local):
+    backend-58d879bd4b-jx7db Running k3d-ra-prod-agent-0
+    backend-58d879bd4b-lgmbc Running k3d-ra-prod-agent-1
+    frontend-6f4d88d4c5-2mtf7 Running k3d-ra-prod-agent-0
+    frontend-6f4d88d4c5-6gkmh Running k3d-ra-prod-agent-1
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Running k3d-ra-prod-agent-1
+    mongodb-exporter-68ff85dbff-7wszd Running k3d-ra-prod-agent-1
+    outbox-77b5db9f88-8vhvt Running k3d-ra-prod-agent-1
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-tkzrz Running k3d-ra-prod-agent-1
+    respaldo-manual-1-bwzg6 Completed k3d-ra-prod-agent-1
+    respaldo-tras-incidente-p89tn Completed k3d-ra-prod-agent-1
+NAME       MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+backend    1               N/A               1                     105m
+frontend   1               N/A               1                     105m
+[15:57:22 +3s] kubectl drain k3d-ra-prod-agent-1 --ignore-daemonsets --delete-emptydir-data (sin --force; respeta PDB)
+    node/k3d-ra-prod-agent-1 cordoned
+    evicting pod monitoring/alertmanager-kps-alertmanager-0
+    evicting pod traefik/traefik-65cb4859dd-9hk45
+    evicting pod redalimenta/mongo-0
+    evicting pod cert-manager/cert-manager-cainjector-774d7f7994-4f4sp
+    evicting pod monitoring/prometheus-kps-prometheus-0
+    evicting pod monitoring/kps-kube-state-metrics-595787775f-h5rr4
+    evicting pod redalimenta/backend-58d879bd4b-lgmbc
+    evicting pod redalimenta/postgres-exporter-76d8c7b59d-tkzrz
+    evicting pod redalimenta/frontend-6f4d88d4c5-6gkmh
+    evicting pod monitoring/kps-operator-5dcd7d497d-8zcts
+    evicting pod redalimenta/mongodb-exporter-68ff85dbff-7wszd
+    evicting pod redalimenta/respaldo-manual-1-bwzg6
+    evicting pod metallb-system/metallb-controller-ffcf647c4-rwmdw
+    evicting pod redalimenta/outbox-77b5db9f88-8vhvt
+    evicting pod redalimenta/respaldo-tras-incidente-p89tn
+    pod/respaldo-tras-incidente-p89tn evicted
+    pod/respaldo-manual-1-bwzg6 evicted
+    pod/metallb-controller-ffcf647c4-rwmdw evicted
+    I1031 15:57:23.857123  880992 request.go:754] "Waited before sending request" delay="1.000097826s" reason="client-side throttling, not priority and fairness" verb="POST" URL="https://127.0.0.1:6552/api/v1/namespaces/redalimenta/pods/mongo-0/eviction"
+    pod/kps-operator-5dcd7d497d-8zcts evicted
+    pod/cert-manager-cainjector-774d7f7994-4f4sp evicted
+    pod/alertmanager-kps-alertmanager-0 evicted
+    pod/prometheus-kps-prometheus-0 evicted
+    pod/kps-kube-state-metrics-595787775f-h5rr4 evicted
+    pod/postgres-exporter-76d8c7b59d-tkzrz evicted
+    pod/mongodb-exporter-68ff85dbff-7wszd evicted
+    pod/mongo-0 evicted
+    pod/traefik-65cb4859dd-9hk45 evicted
+    pod/frontend-6f4d88d4c5-6gkmh evicted
+    pod/backend-58d879bd4b-lgmbc evicted
+    pod/outbox-77b5db9f88-8vhvt evicted
+    node/k3d-ra-prod-agent-1 drained
+[15:57:53 +34s] Durante el mantenimiento:
+    backend-58d879bd4b-fl8gq Running k3d-ra-prod-agent-0
+    backend-58d879bd4b-jx7db Running k3d-ra-prod-agent-0
+    frontend-6f4d88d4c5-2mtf7 Running k3d-ra-prod-agent-0
+    frontend-6f4d88d4c5-5855p Running k3d-ra-prod-agent-0
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Pending <none>
+    mongodb-exporter-68ff85dbff-wph8z Running k3d-ra-prod-agent-0
+    outbox-77b5db9f88-4zf92 Running k3d-ra-prod-agent-0
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-2jnjz Running k3d-ra-prod-agent-0
+    k3d-ra-prod-agent-0    Ready                      <none>          146m   v1.37.1+k3s1
+    k3d-ra-prod-agent-1    Ready,SchedulingDisabled   <none>          146m   v1.37.1+k3s1
+    k3d-ra-prod-server-0   Ready                      control-plane   146m   v1.37.1+k3s1
+[15:57:54 +35s] mongo-0 queda Pending: su PV local-path tiene afinidad a k3d-ra-prod-agent-1 (limitación documentada). La API sigue atendiendo:
+    POST lote con MongoDB fuera: HTTP 000
+[15:58:39 +80s] Outbox pendiente durante la ventana: 0
+[15:58:39 +80s] kubectl uncordon k3d-ra-prod-agent-1
+node/k3d-ra-prod-agent-1 uncordoned
+[15:58:46 +87s] mongo-0 de vuelta en k3d-ra-prod-agent-1
+[15:58:46 +87s] Outbox pendiente tras la recuperación: 0
+[15:58:46 +87s] Distribución final:
+    backend-58d879bd4b-fl8gq Running k3d-ra-prod-agent-0
+    backend-58d879bd4b-jx7db Running k3d-ra-prod-agent-0
+    frontend-6f4d88d4c5-2mtf7 Running k3d-ra-prod-agent-0
+    frontend-6f4d88d4c5-5855p Running k3d-ra-prod-agent-0
+    migraciones-qdpq4 Completed k3d-ra-prod-agent-0
+    mongo-0 Running k3d-ra-prod-agent-1
+    mongodb-exporter-68ff85dbff-wph8z Running k3d-ra-prod-agent-0
+    outbox-77b5db9f88-4zf92 Running k3d-ra-prod-agent-0
+    postgres-0 Running k3d-ra-prod-agent-0
+    postgres-exporter-76d8c7b59d-2jnjz Running k3d-ra-prod-agent-0
+== Impacto en solicitudes (sonda cada 0.25 s)
+solicitudes=197 correctas=162 fallidas=35 (17.77%) p95_ok=85 ms
+primer error 15:57:22 (HTTP 0), último error 15:58:01, ventana con errores=34.2 s, códigos=['0']
