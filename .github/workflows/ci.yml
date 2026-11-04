@@ -73,6 +73,7 @@ jobs:
         with: {registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}"}
       - id: push
         run: |
+          REG=$(echo "$REG" | tr '[:upper:]' '[:lower:]')   # GHCR exige minúsculas
           for c in backend frontend; do
             docker build -t $REG/redalimenta-$c:${GITHUB_SHA::7} --build-arg APP_VERSION=${GITHUB_REF_NAME} $c
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1 image --severity HIGH,CRITICAL \
