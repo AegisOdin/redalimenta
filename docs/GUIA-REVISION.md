@@ -13,6 +13,8 @@ DEV=https://redalimenta-dev.172-30-0-200.sslip.io
 
 ---
 
+admin@redalimenta.test 
+
 ## 1. Antes del turno (20–30 min antes)
 
 1. Conecta la laptop a la corriente y desactiva la suspensión automática. Un reinicio o una suspensión borran las reglas del firewall y cierran los port-forwards.
@@ -76,6 +78,7 @@ No corras pruebas de carga ni `tests/fallos/fallos.sh` durante el turno, porque 
 
 **Qué remarcar.**
 - RedAlimenta es un banco de alimentos con 4 roles: admin, coordinador, trabajador social y voluntario. La autorización se valida **en el servidor**, no solo en la interfaz.
+- Desde la 1.1.2 el **administrador puede hacer todo** (decisión 9 del informe). Si te preguntan: es el responsable final y debe poder cubrir cualquier función; a cambio se pierde la separación de funciones, que se mitiga porque cada transición registra quién la hizo y queda en la bitácora. Las reglas de negocio se le aplican igual.
 - Las 6 reglas de negocio propias son FEFO, Prioritario, merma, 14 días entre despensas, alérgenos y cadena de frío, más el retiro sanitario.
 - Una despensa pasa por los estados Solicitada → Aprobada → En preparación → Lista → Entregada.
 - El navegador nunca habla con las bases; solo con la API.
@@ -321,7 +324,7 @@ Resultados de fallos medidos (D10 y `docs/evidencias/fallos/`):
 
 - El informe está en PDF y en DOCX: `docs/informe/`. Contiene D01–D10.
 - Cada evidencia E01–E14 está en `docs/evidencias/` y sus scripts en `tests/`, así que son reproducibles.
-- La entrega está en el tag `v1.1.1-entrega` (local) y en el repo de GitHub.
+- La entrega está en la etiqueta `v1.1.2-entrega` del repositorio de GitHub (artefacto 1.1.2 en dev y prod).
 - Los intentos fallidos se documentaron, no se ocultaron: HPA en Pending, corte en el drain, 502 sin preStop y build rechazado por Trivy.
 
 ---
@@ -371,7 +374,7 @@ $K rollout status deploy/backend
 curl -s --cacert secrets/ca-prod.crt $PROD/api/version          # {"version":"1.1.0",...}
 # 4) Reversión
 $K rollout undo deploy/backend && $K rollout status deploy/backend
-curl -s --cacert secrets/ca-prod.crt $PROD/api/version          # {"version":"1.1.1",...}
+curl -s --cacert secrets/ca-prod.crt $PROD/api/version          # {"version":"1.1.2",...}
 # 5) Verificación: PRUEBA-REV sigue en la app (el rollback de imagen no toca datos). Después dalo de baja.
 ```
 Ensáyala una vez antes del turno.

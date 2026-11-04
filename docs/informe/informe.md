@@ -6,7 +6,7 @@
 |---|---|
 | Alumno | Neftali Odin Garcia Ramirez |
 | Nombre del proyecto | RedAlimenta — gestión de donativos, caducidades y entregas de un banco de alimentos comunitario |
-| Repositorio y versión de entrega | https://github.com/AegisOdin/redalimenta · etiqueta `v1.1.1-entrega` · artefacto 1.1.1 (backend `sha256:3a862c98…57c2f2`, frontend `sha256:bf54d51d…3cae15e`, fijados en `k8s/overlays/*/kustomization.yaml`) |
+| Repositorio y versión de entrega | https://github.com/AegisOdin/redalimenta · etiqueta `v1.1.2-entrega` · artefacto 1.1.2 (backend `sha256:13d91cdc…243400d`, frontend `sha256:c72adbd5…fdfad0365`, el mismo digest en dev y prod, fijado en `k8s/overlays/*/kustomization.yaml`) |
 | Fecha de inicio y de entrega | 19 oct 2026 (propuesta) · 31 oct 2026 (implementación y pruebas) · 3 nov 2026 (versión de entrega del expediente) |
 | Ambientes | Desarrollo `k3d-ra-dev` (1 nodo) · Producción de laboratorio `k3d-ra-prod` (1 control plane + 2 workers) |
 
@@ -16,7 +16,7 @@
 |---|---|---|
 | 1.0 | 2026-10-31 | Implementación completa, pruebas E01–E14 y expediente D01–D10 |
 | 1.1 | 2026-11-03 | Revisión contra cada sección de la práctica: manual con la plantilla por paso y separado por ambiente, diccionario de datos y consultas representativas, volúmenes por ambiente (PV de prod en Retain), reglas del firewall una por una, observabilidad ampliada (disco, red, eventos, Traefik, TLS, rechazos, respaldos), sonda de arranque del frontend, registro de evidencias y bitácora, mapa de recursos, fuentes oficiales, GitHub Actions e incidente tras reiniciar el host |
-| 1.2 | 2026-11-03 | Artefacto 1.1.2: el administrador tiene todos los permisos de la aplicación (decisión 9). `construir.sh` construye con `--pull --no-cache` porque la caché impedía aplicar parches de Alpine (build rechazado por Trivy) |
+| 1.2 | 2026-11-04 | Artefacto 1.1.2 en dev y prod: el administrador tiene todos los permisos de la aplicación (decisión 9). `construir.sh` construye con `--pull --no-cache` porque la caché impedía aplicar parches de Alpine (build rechazado por Trivy) |
 
 [TOC]
 
@@ -814,6 +814,7 @@ Cada registro indica requisito, precondiciones, datos, pasos y parámetros, dura
 | Rotación de secreto (SEC-04) | Sonda activa | `rotar-secreto.sh prod` | 34 s | 0/147 errores; contraseña anterior rechazada | `SEC-04-rotacion-secreto.txt` |
 | Build 1.1.2, intento 1 | Cambio de permisos del administrador | `construir.sh 1.1.2` | 2 min | Trivy **rechazó** el frontend: libexpat HIGH (CVE-2026-113351) con parche disponible. Diagnóstico: la capa `apk upgrade` venía de la caché de Docker. Se agregó `--pull --no-cache` | `ci/trivy-frontend-1.1.2-RECHAZADO-cache.txt` |
 | Build 1.1.2, repetición y promoción a dev | `--pull --no-cache` | `construir.sh 1.1.2`; `promover.sh dev`; `04-desplegar.sh dev`; pruebas; verificación de la UI con Chromium headless | 6 min | Trivy sin hallazgos corregibles; 22 aprobadas en dev, incluida `test_admin_tiene_todos_los_permisos`; el administrador ve las acciones de todos los roles | `ci/build-1.1.2-0e16ae5.txt`, `E12-dev-1.1.2-pruebas.txt`, capturas `dev-16`, `dev-17` |
+| Promoción 1.1.2 a prod | Mismo build aprobado en dev | `promover.sh prod build-1.1.2-0e16ae5.txt`; `04-desplegar.sh prod` (rolling update con preStop) | 3 min | `/api/version` → 1.1.2; 22 aprobadas; réplicas de backend y frontend en workers distintos; PV de datos en Retain; mismo digest en ambos overlays | `E12-prod-1.1.2-pruebas.txt` |
 
 ![Ambientes independientes: URL, CA, datos, credenciales y volúmenes](docs/capturas/term-E02-independencia.png)
 
