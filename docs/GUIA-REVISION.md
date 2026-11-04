@@ -395,6 +395,7 @@ Otros pedidos rápidos:
 
 | Síntoma | Solución |
 |---|---|
+| La app no abre en el navegador o marca "certificado autofirmado", y `preparar-revision.sh` dice que sslip.io resuelve a otra IP (p. ej. 208.91.112.55) | La red de la escuela o del lugar filtra el DNS (FortiGuard) y bloquea sslip.io. Fija los nombres una vez: `printf '172.30.0.200 redalimenta-dev.172-30-0-200.sslip.io\n172.31.0.200 redalimenta.172-31-0-200.sslip.io\n' \| sudo tee -a /etc/hosts`. Plan B sin sudo: `curl --resolve redalimenta.172-31-0-200.sslip.io:443:172.31.0.200 ...` |
 | La app no carga, o falta el firewall tras un reinicio | `infra/scripts/preparar-revision.sh` |
 | Grafana o Prometheus no abren | El mismo script reabre los port-forwards |
 | El navegador marca el certificado como no válido | Es la CA del laboratorio. Importa `secrets/ca-prod.crt`, o explica que en producción real se usaría ACME |
