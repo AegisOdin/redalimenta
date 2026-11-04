@@ -287,7 +287,7 @@ Evidencias:
 6. **Alertas que funcionan.** En vivo solo debe estar activa `Watchdog`, que siempre se dispara a propósito para comprobar que la cadena de alertas está viva. La prueba de que las demás funcionan está en `docs/evidencias/fallos/E10-historial-alertas.txt` y `E10-alertas-activas-alertmanager.txt`.
 7. **Respuesta a fallos en vivo (unos 30 s).** Borra un Pod y míralo en la terminal A y en Grafana:
    ```bash
-   $K delete pod $($K get pod -l app.kubernetes.io/name=backend -o name | head -1) --wait=false   # borra UNA sola réplica
+   $K delete $($K get pod -l app.kubernetes.io/name=backend -o name | head -1) --wait=false   # borra UNA sola réplica
    ```
    El Deployment lo recrea, el Service deja de enviarle tráfico mientras no está listo, y la app no se cae porque queda la otra réplica.
 
