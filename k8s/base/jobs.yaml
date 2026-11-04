@@ -49,7 +49,7 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      backoffLimit: 2
+      backoffLimit: 5        # tolera el arranque tras reiniciar el host
       template:
         metadata:
           labels: {app.kubernetes.io/name: tarea-diaria, rol: tareas}

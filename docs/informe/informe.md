@@ -162,7 +162,9 @@ Los rangos no se solapan con la LAN 192.168.1.0/24 ni con las redes Docker preex
 | k3d-ra-prod-agent-0 | Worker | 4 vCPU asignables (system-reserved 8) | 8 GiB | compartido | K3s v1.37.1 | 172.31.0.4 |
 | k3d-ra-prod-agent-1 | Worker | 4 vCPU asignables | 8 GiB | compartido | K3s v1.37.1 | 172.31.0.5 |
 
-Docker asigna las IP de los nodos dentro del /24 al crearlos; la tabla refleja la reconstrucción final (E14). Las pruebas de E08 se hicieron con la asignación anterior (agent-1 .4, agent-0 .5). El firewall calcula las IP en tiempo de ejecución y no depende de esta asignación.
+Docker asigna las IP de los nodos dentro del /24 al crearlos; la tabla refleja la reconstrucción final (E14). Las pruebas de E08 se hicieron con la asignación anterior (agent-1 .4, agent-0 .5). El firewall calcula las IP en tiempo de ejecución y no depende de esta asignación. Tras reiniciar el equipo el 2026-11-03, Docker volvió a reasignarlas (server .3, agent-0 .2, agent-1 .4, serverlb .5); la IP pública 172.31.0.200 no cambia porque la fija MetalLB.
+
+**Incidente tras reiniciar el host (2026-11-03).** Al arrancar, el CronJob `respaldo` ejecutó la corrida perdida antes de que CoreDNS estuviera listo y falló (`could not translate host name "postgres"`), con un solo reintento. Además, las reglas RA-FW no estaban presentes. Acciones: `asegurar-firewall.sh` reaplicó el firewall en los 3 nodos; se lanzó un respaldo manual (`kubectl create job --from=cronjob/respaldo`), que terminó correctamente en dev y prod; y se subió `backoffLimit` a 5 en `respaldo` y `tarea-diaria` para que reintenten con espera exponencial. La alerta `RespaldoFallido` cubre este caso.
 
 El presupuesto inicial (2 vCPU y 4 GiB para dev y para el control plane; 4 vCPU y 8 GiB por worker) se aplicó con `serversMemory`, `agentsMemory` y `kubelet system-reserved`, de modo que el scheduler vea exactamente esa capacidad. La CPU física es compartida (12 hilos para todo).
 
