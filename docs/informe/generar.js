@@ -20,7 +20,8 @@ function runs(txt, extra = {}) {
   return out;
 }
 function celdas(l) { const out = []; let cur = '', code = false; const t = l.trim().slice(1, -1);
-  for (const ch of t) { if (ch === '`') code = !code; if (ch === '|' && !code) { out.push(cur); cur = ''; } else cur += ch; }
+  let prev = '';
+  for (const ch of t) { if (ch === '`') code = !code; if (ch === '|' && !code && prev !== '\\') { out.push(cur); cur = ''; } else if (ch === '|' && prev === '\\') { cur = cur.slice(0, -1) + '|'; } else cur += ch; prev = ch; }
   out.push(cur); return out; }
 function pngSize(buf) { return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }; }
 function imagen(rel, cap) {
@@ -40,7 +41,7 @@ function tabla(filas) {
       width: { size: cols[j], type: WidthType.DXA }, borders: { top: borde, bottom: borde, left: borde, right: borde },
       shading: i === 0 ? { type: ShadingType.CLEAR, fill: '1F6F4A', color: 'auto' } : (i % 2 === 0 ? { type: ShadingType.CLEAR, fill: 'F3F7F5', color: 'auto' } : undefined),
       margins: { top: 50, bottom: 50, left: 80, right: 80 },
-      children: [new Paragraph({ children: runs(c.trim(), i === 0 ? { bold: true, color: 'FFFFFF', size: 18 } : { size: 18 }) })] })) })) });
+      children: c.trim().split('<br>').map(parte => new Paragraph({ children: runs(parte.trim(), i === 0 ? { bold: true, color: 'FFFFFF', size: 18 } : { size: 18 }) })) })) })) });
 }
 const hijos = []; let i = 0;
 while (i < md.length) {

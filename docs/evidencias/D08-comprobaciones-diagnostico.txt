@@ -1,0 +1,122 @@
+# Comprobaciones de diagnóstico de la práctica (sección 14), adaptadas. 2026-11-04T05:27:05Z ambiente=prod
+
+$ kubectl config get-contexts
+CURRENT   NAME          CLUSTER       AUTHINFO            NAMESPACE
+*         k3d-ra-dev    k3d-ra-dev    admin@k3d-ra-dev    
+          k3d-ra-prod   k3d-ra-prod   admin@k3d-ra-prod   
+
+$ kubectl --context k3d-ra-prod get nodes -o wide
+NAME                   STATUS   ROLES           AGE    VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION             CONTAINER-RUNTIME
+k3d-ra-prod-agent-0    Ready    <none>          3d6h   v1.37.1+k3s1   172.31.0.2    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-agent-1    Ready    <none>          3d6h   v1.37.1+k3s1   172.31.0.4    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+k3d-ra-prod-server-0   Ready    control-plane   3d6h   v1.37.1+k3s1   172.31.0.3    <none>        K3s v1.37.1+k3s1   7.0.0-38-generic (amd64)   containerd://2.3.4-k3s1
+
+$ kubectl --context k3d-ra-prod -n redalimenta get pods,svc,pvc,hpa
+NAME                                     READY   STATUS      RESTARTS       AGE
+pod/backend-58d879bd4b-9c2cv             1/1     Running     10 (67m ago)   3d6h
+pod/backend-58d879bd4b-v84cn             1/1     Running     10 (67m ago)   3d6h
+pod/frontend-6f4d88d4c5-pd4s5            1/1     Running     10 (67m ago)   3d6h
+pod/frontend-6f4d88d4c5-tkskg            1/1     Running     10 (67m ago)   3d6h
+pod/migraciones-ldf6q                    0/1     Completed   0              48m
+pod/mongo-0                              1/1     Running     10 (67m ago)   3d6h
+pod/mongodb-exporter-68ff85dbff-k5rjq    1/1     Running     10 (67m ago)   3d6h
+pod/outbox-77b5db9f88-chjcq              1/1     Running     10 (67m ago)   3d6h
+pod/postgres-0                           1/1     Running     10 (67m ago)   3d6h
+pod/postgres-exporter-76d8c7b59d-dhzvw   1/1     Running     10 (67m ago)   3d6h
+pod/respaldo-29892000-4j58g              0/1     Completed   0              2d21h
+pod/respaldo-manual-2233-sqrwz           0/1     Completed   0              53m
+pod/tarea-diaria-29892255-zcpl9          0/1     Completed   0              2d17h
+pod/tarea-diaria-manual-2233-tjk9n       0/1     Completed   0              53m
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE
+service/backend             ClusterIP   10.53.10.151    <none>        8000/TCP    3d6h
+service/frontend            ClusterIP   10.53.204.170   <none>        8080/TCP    3d6h
+service/mongo               ClusterIP   None            <none>        27017/TCP   3d6h
+service/mongodb-exporter    ClusterIP   10.53.241.52    <none>        9216/TCP    3d6h
+service/outbox-metrics      ClusterIP   10.53.1.191     <none>        9100/TCP    3d6h
+service/postgres            ClusterIP   None            <none>        5432/TCP    3d6h
+service/postgres-exporter   ClusterIP   10.53.224.138   <none>        9187/TCP    3d6h
+
+NAME                                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/datos-mongo-0      Bound    pvc-2ca8b691-1420-4344-b1d5-5d7d86098847   5Gi        RWO            local-path     <unset>                 3d6h
+persistentvolumeclaim/datos-postgres-0   Bound    pvc-fb44c308-7cef-4252-a0d0-74e82657efd6   5Gi        RWO            local-path     <unset>                 3d6h
+persistentvolumeclaim/respaldos          Bound    pvc-2ac34dd9-bd31-445f-a98f-c36ec9fbba3c   5Gi        RWO            local-path     <unset>                 3d6h
+
+NAME                                          REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/backend   Deployment/backend   cpu: 1%/60%   2         6         2          3d6h
+
+$ kubectl --context k3d-ra-prod -n redalimenta describe hpa backend
+Name:                                                  backend
+Namespace:                                             redalimenta
+Labels:                                                <none>
+Annotations:                                           <none>
+CreationTimestamp:                                     Sat, 31 Oct 2026 16:43:06 -0600
+Reference:                                             Deployment/backend
+Metrics:                                               ( current / target )
+  resource cpu on pods  (as a percentage of request):  1% (4m) / 60%
+Min replicas:                                          2
+Max replicas:                                          6
+Behavior:
+  Scale Up:
+    Stabilization Window: 0 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 2  Period: 30 seconds
+  Scale Down:
+    Stabilization Window: 180 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 1  Period: 60 seconds
+Deployment pods:    2 current / 2 desired
+Conditions:
+  Type            Status  Reason            Message
+  ----            ------  ------            -------
+  AbleToScale     True    ReadyForNewScale  recommended size matches current size
+  ScalingActive   True    ValidMetricFound  the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+  ScalingLimited  True    TooFewReplicas    the desired replica count is less than the minimum replica count
+  ScaledToZero    False   NotScaledToZero   the HPA controller did not scale the workload to zero
+Events:           <none>
+
+$ kubectl --context k3d-ra-prod -n redalimenta top pods
+NAME                                 CPU(cores)   MEMORY(bytes)   
+backend-58d879bd4b-9c2cv             4m           79Mi            
+backend-58d879bd4b-v84cn             4m           80Mi            
+frontend-6f4d88d4c5-pd4s5            1m           10Mi            
+frontend-6f4d88d4c5-tkskg            1m           10Mi            
+mongo-0                              64m          136Mi           
+mongodb-exporter-68ff85dbff-k5rjq    7m           30Mi            
+outbox-77b5db9f88-chjcq              6m           54Mi            
+postgres-0                           22m          40Mi            
+postgres-exporter-76d8c7b59d-dhzvw   2m           10Mi            
+
+$ kubectl --context k3d-ra-prod top nodes
+NAME                   CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+k3d-ra-prod-agent-0    322m         8%       1882Mi          22%         
+k3d-ra-prod-agent-1    438m         10%      1841Mi          21%         
+k3d-ra-prod-server-0   176m         8%       1429Mi          34%         
+
+$ kubectl --context k3d-ra-prod -n redalimenta get networkpolicy
+NAME                 POD-SELECTOR                                                            AGE
+app-salida-a-datos   rol in (api,migraciones,tareas,worker)                                  3d6h
+backend-entrada      app.kubernetes.io/name=backend                                          3d6h
+denegar-todo         <none>                                                                  3d6h
+exporters-salida     app.kubernetes.io/name in (mongodb-exporter,postgres-exporter)          3d6h
+frontend-entrada     app.kubernetes.io/name=frontend                                         3d6h
+metricas-entrada     app.kubernetes.io/name in (mongodb-exporter,outbox,postgres-exporter)   3d6h
+mongo-entrada        app.kubernetes.io/name=mongo                                            3d6h
+permitir-dns         <none>                                                                  3d6h
+postgres-entrada     app.kubernetes.io/name=postgres                                         3d6h
+pruebas-salida       rol=pruebas                                                             3d6h
+respaldos-salida     rol=respaldos                                                           3d6h
+
+# auth can-i con la IDENTIDAD EVALUADA (certificados de cliente de usuarios reales, no el admin)
+luis.lector: kubectl auth can-i get pods -n redalimenta -> yes
+luis.lector: kubectl auth can-i delete pods -n redalimenta -> no
+luis.lector: kubectl auth can-i patch deployments -n redalimenta -> no
+luis.lector: kubectl auth can-i get secrets -n redalimenta -> no
+luis.lector: kubectl auth can-i create pods/exec -n redalimenta -> no
+ana.operadora: kubectl auth can-i get pods -n redalimenta -> yes
+ana.operadora: kubectl auth can-i delete pods -n redalimenta -> yes
+ana.operadora: kubectl auth can-i patch deployments -n redalimenta -> yes
+ana.operadora: kubectl auth can-i get secrets -n redalimenta -> no
+ana.operadora: kubectl auth can-i create pods/exec -n redalimenta -> no

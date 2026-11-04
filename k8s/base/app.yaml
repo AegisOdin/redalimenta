@@ -165,6 +165,10 @@ spec:
           resources:
             requests: {cpu: 20m, memory: 32Mi}
             limits: {memory: 128Mi}
+          startupProbe:             # Nginx arranca en < 1 s; da hasta 30 s antes de evaluar las otras sondas
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 2
+            failureThreshold: 15
           readinessProbe:
             httpGet: {path: /healthz, port: http}
             periodSeconds: 5

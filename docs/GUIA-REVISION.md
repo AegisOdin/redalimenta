@@ -174,6 +174,12 @@ Evidencias:
 - `E13-restauracion-prod.txt`: conteos idénticos y RTO
 - `fallos/E11-mongo-caido.txt`: 0 errores y 0 duplicados
 
+En prod, los volúmenes de datos y respaldos tienen la política `Retain`: borrar un PVC por error no borra los datos. Compruébalo con:
+```bash
+kubectl --context k3d-ra-prod get pv -o custom-columns=PVC:.spec.claimRef.name,POLITICA:.spec.persistentVolumeReclaimPolicy,NODO:.spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0]
+```
+La tabla completa de volúmenes por ambiente está en el informe, D09.
+
 Si el profesor pide restaurar en vivo (unos 2 min):
 ```bash
 respaldos/extraer.sh prod                                   # copia el respaldo cifrado a backups/prod/<marca>
@@ -275,6 +281,11 @@ Evidencias:
    - **Aplicación:** solicitudes por segundo, p95, tasa de errores, réplicas del HPA, y CPU y memoria por Pod.
    - **Bases de datos:** disponibilidad, conexiones, transacciones y outbox.
    - **Infraestructura:** CPU y memoria por nodo, antigüedad del último respaldo, alertas activas y logs.
+   - **Nodos y Kubernetes:** nodos Ready, disco y red por nodo, Pods Pending, réplicas deseadas frente a disponibles y eventos de Kubernetes.
+   - **Entrada, TLS y seguridad:** solicitudes de Traefik por código, réplicas de la entrada, días para que expire cada certificado y rechazos 401/403/429.
+   - **PostgreSQL y respaldos:** duración máxima de transacción, conexiones frente al máximo, Jobs de respaldo exitosos y fallidos, horas desde la última ejecución, y tamaño y duración por motor.
+
+   Estas tres últimas secciones cubren uno por uno los objetos de la tabla "Cobertura mínima" de la sección 10 de la práctica. La correspondencia está en el informe, D08.
 2. **Prometheus**, pestaña 5 (`/targets`): todos los objetivos están en **UP**, incluidos los 2 backends, el outbox y los exportadores.
 3. **Prometheus**, pestaña 6 (`/alerts`): los grupos `redalimenta.disponibilidad`, `redalimenta.errores` y `redalimenta.capacidad` están en la página 2. El buscador filtra por **nombre de regla**: escribe `Respaldo` o `Outbox`. Abre una regla para enseñar su expresión y su umbral.
 4. **Consulta en vivo.** En http://localhost:9090/query escribe `redalimenta_outbox_pendientes` (debe ser 0) o `pg_up` (1 = PostgreSQL arriba).
@@ -302,6 +313,11 @@ Resultados de fallos medidos (D10 y `docs/evidencias/fallos/`):
 | Actualización y rollback | 0 errores tras agregar preStop; el primer intento tuvo 5 errores 502 |
 
 ### 3.8 Documentación, evidencias y defensa (10 pts)
+
+- **"¿Dónde se controla X?"** La práctica dice que el profesor puede pedirte localizar el recurso que controla un comportamiento. La respuesta está en el informe, **Anexo C**: tabla de comportamiento → archivo, por ejemplo HPA → `k8s/overlays/prod/hpa-pdb.yaml` y puertos del nodo → `infra/firewall/firewall-nodos.sh`.
+- **Registro de evidencias y bitácora** (informe, D10): cada evidencia tiene fecha, ambiente, comando, resultado esperado y observado; cada prueba, precondiciones, pasos, duración y mediciones, incluidos los intentos fallidos.
+- **Manual de instalación** (D05): cada paso sigue la plantilla de la práctica y está separado en desarrollo y producción.
+- **Diccionario de datos** (Anexo B) y **consultas representativas** de SQL y MongoDB (D04).
 
 - El informe está en PDF y en DOCX: `docs/informe/`. Contiene D01–D10.
 - Cada evidencia E01–E14 está en `docs/evidencias/` y sus scripts en `tests/`, así que son reproducibles.

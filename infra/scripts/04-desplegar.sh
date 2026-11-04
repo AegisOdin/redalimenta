@@ -12,4 +12,12 @@ $K rollout status statefulset/mongo --timeout=300s
 $K wait job/migraciones --for=condition=complete --timeout=300s
 $K logs job/migraciones --tail=3
 for d in backend outbox frontend; do $K rollout status deploy/$d --timeout=300s; done
+# Producción: los PV de datos y respaldos pasan a Retain (local-path crea los PV con Delete). Así, borrar un PVC
+# por error no borra el directorio de datos del nodo; el PV queda Released y se puede recuperar.
+if [ "$AMB" = prod ]; then
+  for pv in $($K get pvc -o jsonpath='{.items[*].spec.volumeName}'); do
+    kubectl --context $CTX patch pv "$pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}' >/dev/null
+  done
+  kubectl --context $CTX get pv -o custom-columns=PV:.metadata.name,RECLAIM:.spec.persistentVolumeReclaimPolicy,PVC:.spec.claimRef.name --no-headers | grep redalimenta || true
+fi
 $K get pods -o wide
