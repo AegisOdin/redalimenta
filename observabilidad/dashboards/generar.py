@@ -3,19 +3,19 @@
 import json
 
 P = []
-def panel(t, exprs, x, y, w=8, h=7, unit="short", kind="timeseries", ds="prometheus"):
+def panel(t, exprs, x, y, w=8, h=7, unit="short", kind="timeseries", ds="prometheus", vmin=None, vmax=None):
     targets = [{"expr": e, "legendFormat": l, "refId": chr(65 + i), "datasource": {"type": ds, "uid": "prometheus" if ds == "prometheus" else "loki"}}
                for i, (e, l) in enumerate(exprs)]
     P.append({"type": kind, "title": t, "gridPos": {"x": x, "y": y, "w": w, "h": h}, "targets": targets,
               "datasource": {"type": ds, "uid": "prometheus" if ds == "prometheus" else "loki"},
-              "fieldConfig": {"defaults": {"unit": unit}, "overrides": []}, "options": {"legend": {"displayMode": "list"}}})
+              "fieldConfig": {"defaults": {"unit": unit, **({"min": vmin} if vmin is not None else {}), **({"max": vmax} if vmax is not None else {})}, "overrides": []}, "options": {"legend": {"displayMode": "list"}}})
 
 NS = 'namespace="redalimenta"'
 P.append({"type": "row", "title": "Aplicación", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}})
 panel("Solicitudes por segundo (por estado)", [('sum by (status) (rate(redalimenta_http_requests_total[1m]))', "{{status}}")], 0, 1, unit="reqps")
 panel("Latencia p95 (s)", [('histogram_quantile(0.95, sum by (le) (rate(redalimenta_http_request_duration_seconds_bucket{route!="/metrics"}[1m])))', "p95"),
                            ('histogram_quantile(0.50, sum by (le) (rate(redalimenta_http_request_duration_seconds_bucket{route!="/metrics"}[1m])))', "p50")], 8, 1, unit="s")
-panel("Tasa de errores 5xx", [('(sum(rate(redalimenta_http_requests_total{status=~"5.."}[1m])) or vector(0)) / clamp_min(sum(rate(redalimenta_http_requests_total[1m])),0.001)', "errores")], 16, 1, unit="percentunit")
+panel("Tasa de errores 5xx", [('(sum(rate(redalimenta_http_requests_total{status=~"5.."}[1m])) or vector(0)) / clamp_min(sum(rate(redalimenta_http_requests_total[1m])),0.001)', "errores")], 16, 1, unit="percentunit", vmin=0, vmax=1)
 panel("Réplicas backend (HPA)", [(f'kube_horizontalpodautoscaler_status_desired_replicas{{{NS}}}', "deseadas"),
                                  (f'kube_horizontalpodautoscaler_status_current_replicas{{{NS}}}', "actuales"),
                                  (f'kube_deployment_status_replicas_ready{{{NS},deployment="backend"}}', "Ready")], 0, 8)
@@ -35,10 +35,10 @@ P.append({"type": "row", "title": "Infraestructura y respaldos", "gridPos": {"x"
 panel("CPU por nodo", [('1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m]))', "{{instance}}")], 0, 31, unit="percentunit")
 panel("Memoria de Pods / asignable por nodo", [('sum by (node) (container_memory_working_set_bytes{container!="",pod!=""}) / on (node) group_left kube_node_status_allocatable{resource="memory"}', "{{node}}")], 8, 31, unit="percentunit")
 panel("Antigüedad del último respaldo válido (h)", [('(time() - max(kube_cronjob_status_last_successful_time{namespace="redalimenta",cronjob="respaldo"})) / 3600', "horas")], 16, 31, unit="h", kind="stat")
-panel("Pods no listos / reinicios", [(f'sum(kube_pod_status_ready{{{NS},condition="false"}})', "no listos"),
+panel("Pods no listos / reinicios", [(f'sum((kube_pod_status_ready{{{NS},condition="false"}} == 1) and on(namespace, pod) (kube_pod_status_phase{{{NS},phase=~"Running|Pending"}} == 1)) or vector(0)', "no listos (excluye Jobs terminados)"),
                                      (f'sum(increase(kube_pod_container_status_restarts_total{{{NS}}}[10m]))', "reinicios 10m")], 0, 38)
 panel("Alertas activas", [('sum by (alertname) (ALERTS{alertstate="firing"})', "{{alertname}}")], 8, 38)
-panel("Logs de la aplicación", [('{namespace="redalimenta", app=~"backend|outbox"}', "")], 16, 38, kind="logs", ds="loki", h=7)
+panel("Logs de la aplicación", [('{namespace="redalimenta", app=~"backend|outbox"} != "/readyz" != "/healthz" != "/metrics"', "")], 16, 38, kind="logs", ds="loki", h=7)
 
 dash = {"title": "RedAlimenta - Operación", "uid": "redalimenta-op", "timezone": "browser", "schemaVersion": 39,
         "refresh": "10s", "time": {"from": "now-30m", "to": "now"}, "panels": P, "tags": ["redalimenta"]}
