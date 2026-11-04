@@ -19,7 +19,7 @@ HORAS_NO_RECOGIDA = 72
 ESTADOS_ASIGNABLES = ("disponible", "prioritario")
 ESTADOS_DESPENSA_ABIERTA = ("solicitada", "aprobada", "en_preparacion", "lista")
 
-# Transiciones válidas de la despensa: (origen, destino) -> roles autorizados
+# Transiciones válidas de la despensa: (origen, destino) -> roles autorizados (además, el administrador puede todas)
 TRANSICIONES = {
     ("solicitada", "aprobada"): {"trabajador_social"},
     ("solicitada", "rechazada"): {"trabajador_social"},

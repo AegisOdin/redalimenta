@@ -68,9 +68,9 @@ def usuario_actual(request: Request, db: Session = Depends(get_db)) -> Usuario:
 
 
 def requiere(*roles: str):
-    """Autorización en servidor por rol."""
+    """Autorización en servidor por rol. El administrador tiene todos los permisos (decisión del proyecto)."""
     def dep(u: Usuario = Depends(usuario_actual)) -> Usuario:
-        if u.rol not in roles:
+        if u.rol != "admin" and u.rol not in roles:
             raise HTTPException(403, f"El rol '{u.rol}' no tiene permiso para esta operación")
         return u
     return dep

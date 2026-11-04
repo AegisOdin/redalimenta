@@ -16,6 +16,7 @@
 |---|---|---|
 | 1.0 | 2026-10-31 | Implementación completa, pruebas E01–E14 y expediente D01–D10 |
 | 1.1 | 2026-11-03 | Revisión contra cada sección de la práctica: manual con la plantilla por paso y separado por ambiente, diccionario de datos y consultas representativas, volúmenes por ambiente (PV de prod en Retain), reglas del firewall una por una, observabilidad ampliada (disco, red, eventos, Traefik, TLS, rechazos, respaldos), sonda de arranque del frontend, registro de evidencias y bitácora, mapa de recursos, fuentes oficiales, GitHub Actions e incidente tras reiniciar el host |
+| 1.2 | 2026-11-03 | Artefacto 1.1.2: el administrador tiene todos los permisos de la aplicación (decisión 9). `construir.sh` construye con `--pull --no-cache` porque la caché impedía aplicar parches de Alpine (build rechazado por Trivy) |
 
 [TOC]
 
@@ -39,7 +40,7 @@ Un banco de alimentos recibe donativos con caducidad corta y lleva el control en
 
 | Rol | Qué hace | No puede (verificado en servidor) |
 |---|---|---|
-| Administrador | Usuarios, catálogos, reportes, retiro sanitario | Confirmar entregas en nombre de otro |
+| Administrador | **Todas** las operaciones de los demás roles (desde la 1.1.2), más usuarios, catálogos, reportes y retiro sanitario | — (ver decisión 9: las reglas de negocio y las transiciones válidas se le siguen aplicando) |
 | Coordinador de almacén | Recibe donativos, inspecciona lotes, arma despensas (FEFO) | Aprobar despensas, dar de alta hogares |
 | Trabajador social | Registra hogares, solicita, aprueba o rechaza despensas | Modificar inventario |
 | Voluntario de entrega | Ve despensas listas de su ruta y confirma la entrega | Ver hogares fuera de su ruta |
@@ -58,7 +59,7 @@ Un banco de alimentos recibe donativos con caducidad corta y lleva el control en
 | ID | Requerimiento | Criterio de aceptación | Evidencia |
 |---|---|---|---|
 | RF1 | CRUD de Lote, Hogar y Despensa (+ catálogos Donante y Producto) | Alta, consulta, modificación y baja (física solo sin historia; lógica en el resto) desde UI y API | `test_crud_*`, capturas 04–12 |
-| RF2 | Autenticación y 4 roles | 401 sin sesión, 403 por rol, sesión expirada, CSRF obligatorio | `test_csrf_obligatorio`, `test_*_no_*`, `test_sesion_expirada`, `E03-sesion-expirada-*.txt` |
+| RF2 | Autenticación y 4 roles (el administrador con todos los permisos desde la 1.1.2) | 401 sin sesión, 403 por rol, sesión expirada, CSRF obligatorio | `test_csrf_obligatorio`, `test_*_no_*`, `test_sesion_expirada`, `E03-sesion-expirada-*.txt` |
 | RF3 | Validación en cliente y servidor | 422 por campo (tipos, rangos, obligatorios), 409 por unicidad o regla | `test_validacion_*`, captura 11 |
 | RF4 | Búsqueda, paginación y reporte mensual | Página 2 de 10 con total ≥ 100; kilos, merma por categoría y hogares | `test_paginacion_y_busqueda`, captura 07 |
 | RF5 | Flujo de despensa con estados | Transiciones inválidas → 409; rol incorrecto → 403 | `test_flujo_completo_*` |
@@ -133,6 +134,7 @@ La IP externa la asigna **MetalLB 0.16 en modo L2** (pool 172.31.0.200–210 en 
 | 6 | kube-prometheus-stack + Loki + Alloy | Metrics Server solo / ELK | Historial, alertas y logs con correlación; menos memoria que ELK | ~2 GiB adicionales en prod |
 | 7 | Kustomize base + overlays con digests | Helm propio | Sin plantillas; el diff de promoción es solo el digest | — |
 | 8 | Registro OCI local compartido | Importar imágenes a cada clúster | Promoción por digest inmutable | Punto único del laboratorio |
+| 9 | Administrador con todos los permisos de la aplicación (1.1.2) | Separación estricta de funciones (el administrador no confirmaba entregas ni registraba lotes) | El administrador es el responsable final del banco y debe poder cubrir cualquier función cuando falta personal | Se pierde la separación de funciones. Mitigación: cada transición registra quién la hizo (`aprobada_por`, `preparada_por`, `entregada_por`) y el evento queda en el outbox y en la bitácora de MongoDB; FEFO, alérgenos, 14 días y transiciones válidas se le aplican igual. Lo verifica `test_admin_tiene_todos_los_permisos` |
 
 # D03 · Diagramas, inventario y capacidad
 
@@ -810,6 +812,8 @@ Cada registro indica requisito, precondiciones, datos, pasos y parámetros, dura
 | Restauración (E13) | Respaldo extraído `20261031T202207Z` | `restaurar.sh prod` en un namespace aislado | 78 s | Conteos idénticos; 10 FK, 10 PK, 8 UNIQUE, 14 CHECK, 28 índices; login 200 con los datos restaurados | `E13-restauracion-prod.txt` |
 | Reconstrucción (E14) | Clúster borrado; se conservan el repo, el registro y `secrets/` | Manual D05 completo | dev 7 min 1 s; prod 12 min 3 s | 22/22 en ambos | `E14-*.txt` |
 | Rotación de secreto (SEC-04) | Sonda activa | `rotar-secreto.sh prod` | 34 s | 0/147 errores; contraseña anterior rechazada | `SEC-04-rotacion-secreto.txt` |
+| Build 1.1.2, intento 1 | Cambio de permisos del administrador | `construir.sh 1.1.2` | 2 min | Trivy **rechazó** el frontend: libexpat HIGH (CVE-2026-113351) con parche disponible. Diagnóstico: la capa `apk upgrade` venía de la caché de Docker. Se agregó `--pull --no-cache` | `ci/trivy-frontend-1.1.2-RECHAZADO-cache.txt` |
+| Build 1.1.2, repetición y promoción a dev | `--pull --no-cache` | `construir.sh 1.1.2`; `promover.sh dev`; `04-desplegar.sh dev`; pruebas; verificación de la UI con Chromium headless | 6 min | Trivy sin hallazgos corregibles; 22 aprobadas en dev, incluida `test_admin_tiene_todos_los_permisos`; el administrador ve las acciones de todos los roles | `ci/build-1.1.2-0e16ae5.txt`, `E12-dev-1.1.2-pruebas.txt`, capturas `dev-16`, `dev-17` |
 
 ![Ambientes independientes: URL, CA, datos, credenciales y volúmenes](docs/capturas/term-E02-independencia.png)
 

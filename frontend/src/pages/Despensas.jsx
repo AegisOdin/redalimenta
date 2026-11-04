@@ -15,7 +15,7 @@ function Detalle({ d, usuario, onAccion }) {
   const [motivo, setMotivo] = useState('')
   const [resultado, setResultado] = useState(null)
   const [item, setItem] = useState({ lote_id: '', cantidad: 1 })
-  const posibles = d.transiciones.filter((t) => PERMISO[t]?.includes(usuario.rol))
+  const posibles = d.transiciones.filter((t) => usuario.rol === 'admin' || PERMISO[t]?.includes(usuario.rol))
   const ir = async (t) => {
     if (PIDE_MOTIVO.includes(t) && motivo.trim().length < 3) return alert('Indique el motivo')
     const r = await onAccion(() => api(`/api/despensas/${d.id}/transicion/${t}`, { method: 'POST', body: { motivo: motivo || null } }), `Despensa ${d.folio}: ${ESTADO_LABEL[t]}`)
@@ -37,7 +37,7 @@ function Detalle({ d, usuario, onAccion }) {
       {resultado.omitidos_por_alergeno.length > 0 && <p>Omitidos por alérgeno: {resultado.omitidos_por_alergeno.map((o) => `${o.producto} (${o.alergenos.join(', ')})`).join('; ')}</p>}
       {resultado.faltantes.length > 0 && <p>Sin existencia suficiente: {resultado.faltantes.map((o) => `${o.producto} (faltan ${o.faltan})`).join('; ')}</p>}
     </div>}
-    {usuario.rol === 'coordinador' && d.estado === 'en_preparacion' && <form className="fila-form" onSubmit={(e) => { e.preventDefault(); onAccion(() => api(`/api/despensas/${d.id}/items`, { method: 'POST', body: { lote_id: Number(item.lote_id), cantidad: Number(item.cantidad) } }), 'Producto agregado') }}>
+    {['coordinador', 'admin'].includes(usuario.rol) && d.estado === 'en_preparacion' && <form className="fila-form" onSubmit={(e) => { e.preventDefault(); onAccion(() => api(`/api/despensas/${d.id}/items`, { method: 'POST', body: { lote_id: Number(item.lote_id), cantidad: Number(item.cantidad) } }), 'Producto agregado') }}>
       <input type="number" placeholder="ID de lote" min="1" value={item.lote_id} onChange={(e) => setItem({ ...item, lote_id: e.target.value })} required />
       <input type="number" min="1" max="1000" value={item.cantidad} onChange={(e) => setItem({ ...item, cantidad: e.target.value })} required />
       <button className="sec">Agregar lote manualmente</button></form>}
@@ -66,7 +66,7 @@ export default function Despensas({ usuario, query }) {
       <select value={filtro.estado} onChange={(e) => setFiltro({ ...filtro, estado: e.target.value, page: 1 })}>
         <option value="">Todos los estados</option>{ESTADOS.map((s) => <option key={s} value={s}>{ESTADO_LABEL[s]}</option>)}</select>
     </div>
-    {usuario.rol === 'trabajador_social' && <p className="ayuda">Para solicitar una despensa, vaya a <a href="#/hogares">Hogares</a> y elija un hogar elegible.</p>}
+    {['trabajador_social', 'admin'].includes(usuario.rol) && <p className="ayuda">Para solicitar una despensa, vaya a <a href="#/hogares">Hogares</a> y elija un hogar elegible.</p>}
     <div className="tabla-scroll"><table className="tabla">
       <thead><tr><th>Folio</th><th>Hogar</th><th>Ruta</th><th>Raciones</th><th>Programada</th><th>Estado</th></tr></thead>
       <tbody>{datos.items.map((d) => <tr key={d.id} className="clic" onClick={() => setSel(d)}>

@@ -75,7 +75,7 @@ export default function Lotes({ usuario }) {
   const [donantes, setDonantes] = useState([])
   const [modal, setModal] = useState(null)
   const m = useMensaje()
-  const coord = usuario.rol === 'coordinador'
+  const coord = ['coordinador', 'admin'].includes(usuario.rol)  // el administrador tiene todos los permisos
   const cargar = useCallback(() => api(`/api/lotes?${qs(filtro)}`).then(setDatos).catch(m.err), [filtro])
   useEffect(() => { cargar() }, [cargar])
   useEffect(() => { api('/api/productos').then(setProductos); api('/api/donantes').then(setDonantes) }, [])

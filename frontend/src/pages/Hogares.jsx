@@ -42,7 +42,7 @@ export default function Hogares({ usuario }) {
   const [datos, setDatos] = useState({ items: [], total: 0 })
   const [modal, setModal] = useState(null)
   const m = useMensaje()
-  const ts = usuario.rol === 'trabajador_social'
+  const ts = ['trabajador_social', 'admin'].includes(usuario.rol)  // el administrador tiene todos los permisos
   const cargar = useCallback(() => api(`/api/hogares?${qs(filtro)}`).then(setDatos).catch(m.err), [filtro])
   useEffect(() => { cargar() }, [cargar])
   const accion = async (fn, t) => { try { await fn(); m.ok(t); setModal(null); cargar() } catch (e) { m.err(e) } }

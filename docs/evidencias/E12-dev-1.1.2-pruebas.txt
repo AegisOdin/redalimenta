@@ -1,0 +1,3 @@
+test_admin_tiene_todos_los_permisos PASSED       [ 34%]
+test_solo_admin_gestiona_usuarios PASSED         [ 39%]
+======================== 22 passed, 1 skipped in 1.76s =========================

@@ -76,9 +76,20 @@ def test_coordinador_no_da_alta_hogares(coord, uid):
     assert r.status_code == 403
 
 
-def test_admin_no_confirma_entregas(admin):
-    r = admin.post("/api/despensas/1/transicion/entregada", {})
-    assert r.status_code in (403, 409)
+def test_admin_tiene_todos_los_permisos(admin, uid):
+    """Decisión del proyecto: el administrador puede ejecutar cualquier operación y cualquier transición válida.
+    Las reglas de negocio (FEFO, transiciones válidas, 14 días) se le siguen aplicando."""
+    prod = _producto(admin, uid + "A", unidades_por_racion="1")
+    lote = _lote_disponible(admin, prod, _donante(admin), HOY + timedelta(days=30), cant=20)   # rol coordinador
+    h = _hogar(admin, uid + "A")                                                                # rol trabajador social
+    d = admin.post("/api/despensas", {"hogar_id": h["id"], "fecha_programada": str(HOY + timedelta(days=1))})
+    assert d.status_code == 201, d.text
+    d = d.json()
+    assert admin.post(f"/api/despensas/{d['id']}/transicion/lista").status_code == 409   # salto inválido, aun para admin
+    for destino in ("aprobada", "en_preparacion", "lista", "entregada"):                # social, coord, coord, voluntario
+        r = admin.post(f"/api/despensas/{d['id']}/transicion/{destino}")
+        assert r.status_code == 200, (destino, r.text)
+    assert admin.get(f"/api/trazabilidad/lotes/{lote['folio']}").status_code in (200, 503)
 
 
 def test_solo_admin_gestiona_usuarios(coord):

@@ -6,7 +6,7 @@ V=${1:?version}; R=$(cd "$(dirname "$0")/../.." && pwd); REG=k3d-ra-registry.loc
 SHA=$(git -C "$R" rev-parse --short HEAD 2>/dev/null || date -u +%Y%m%d%H%M); TAG="$V-$SHA"
 mkdir -p "$R/docs/evidencias/ci"
 for c in backend frontend; do
-  docker build -q -t $REG/redalimenta-$c:$TAG --build-arg APP_VERSION=$V \
+  docker build -q --pull --no-cache -t $REG/redalimenta-$c:$TAG --build-arg APP_VERSION=$V \
     --label org.opencontainers.image.version=$V --label org.opencontainers.image.revision=$SHA "$R/$c" >/dev/null
   # Hallazgos HIGH/CRITICAL con corrección disponible bloquean la publicación
   trivy image -q --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --format table \

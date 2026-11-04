@@ -84,7 +84,7 @@ def transicion(i: int, destino: str, t: TransicionIn, db: Session = Depends(get_
     roles = rules.TRANSICIONES.get((d.estado, destino))
     if roles is None:
         raise HTTPException(409, f"Transición inválida: {d.estado} → {destino}")
-    if u.rol not in roles:
+    if u.rol != "admin" and u.rol not in roles:  # el administrador puede ejecutar cualquier transición válida
         raise HTTPException(403, f"El rol '{u.rol}' no puede pasar la despensa de {d.estado} a {destino}")
     extra = {}
     if destino == "aprobada":
