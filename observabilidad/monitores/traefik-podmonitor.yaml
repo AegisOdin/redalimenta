@@ -1,0 +1,14 @@
+# Métricas de la entrada (Traefik): solicitudes por entrypoint y código, salud de la entrada.
+# Traefik expone /metrics en el puerto "metrics" (9100) por la configuración de infra/platform/traefik-values.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  selector:
+    matchLabels: {app.kubernetes.io/name: traefik}
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

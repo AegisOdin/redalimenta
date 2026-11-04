@@ -3,12 +3,13 @@
 import json
 
 P = []
-def panel(t, exprs, x, y, w=8, h=7, unit="short", kind="timeseries", ds="prometheus", vmin=None, vmax=None):
+def panel(t, exprs, x, y, w=8, h=7, unit="short", kind="timeseries", ds="prometheus", vmin=None, vmax=None, umbrales=None):
     targets = [{"expr": e, "legendFormat": l, "refId": chr(65 + i), "datasource": {"type": ds, "uid": "prometheus" if ds == "prometheus" else "loki"}}
                for i, (e, l) in enumerate(exprs)]
     P.append({"type": kind, "title": t, "gridPos": {"x": x, "y": y, "w": w, "h": h}, "targets": targets,
               "datasource": {"type": ds, "uid": "prometheus" if ds == "prometheus" else "loki"},
-              "fieldConfig": {"defaults": {"unit": unit, **({"min": vmin} if vmin is not None else {}), **({"max": vmax} if vmax is not None else {})}, "overrides": []}, "options": {"legend": {"displayMode": "list"}}})
+              "fieldConfig": {"defaults": {"unit": unit, **({"min": vmin} if vmin is not None else {}), **({"max": vmax} if vmax is not None else {}),
+                                           **({"thresholds": {"mode": "absolute", "steps": umbrales}} if umbrales else {})}, "overrides": []}, "options": {"legend": {"displayMode": "list"}}})
 
 NS = 'namespace="redalimenta"'
 P.append({"type": "row", "title": "Aplicación", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}})
@@ -39,6 +40,32 @@ panel("Pods no listos / reinicios", [(f'sum((kube_pod_status_ready{{{NS},conditi
                                      (f'sum(increase(kube_pod_container_status_restarts_total{{{NS}}}[10m]))', "reinicios 10m")], 0, 38)
 panel("Alertas activas", [('sum by (alertname) (ALERTS{alertstate="firing"})', "{{alertname}}")], 8, 38)
 panel("Logs de la aplicación", [('{namespace="redalimenta", app=~"backend|outbox"} != "/readyz" != "/healthz" != "/metrics"', "")], 16, 38, kind="logs", ds="loki", h=7)
+
+# --- Cobertura de la sección 10 de la práctica: nodos (disco/red), Kubernetes, entrada y seguridad, PostgreSQL y respaldos
+P.append({"type": "row", "title": "Nodos y Kubernetes", "gridPos": {"x": 0, "y": 45, "w": 24, "h": 1}})
+panel("Nodos Ready", [('sum(kube_node_status_condition{condition="Ready",status="true"})', "Ready"),
+                      ('count(kube_node_info)', "total")], 0, 46, w=4, kind="stat")
+panel("Disco usado (volumen de k3s, compartido con el host)", [('max by (instance) (1 - node_filesystem_avail_bytes{mountpoint="/var/lib/rancher/k3s"} / node_filesystem_size_bytes{mountpoint="/var/lib/rancher/k3s"})', "{{instance}}")], 4, 46, w=7, unit="percentunit", vmin=0, vmax=1)
+panel("Red por nodo (eth0)", [('rate(node_network_receive_bytes_total{device="eth0"}[1m])', "rx {{instance}}"),
+                              ('-rate(node_network_transmit_bytes_total{device="eth0"}[1m])', "tx {{instance}}")], 11, 46, w=7, unit="Bps")
+panel("Pods Pending (redalimenta)", [(f'sum(kube_pod_status_phase{{{NS},phase="Pending"}})', "Pending")], 18, 46, w=6)
+panel("Réplicas deseadas vs disponibles", [(f'kube_deployment_spec_replicas{{{NS}}}', "deseadas {{deployment}}"),
+                                            (f'kube_deployment_status_replicas_available{{{NS}}}', "disponibles {{deployment}}")], 0, 53, w=10)
+panel("Eventos de Kubernetes (redalimenta)", [('{job="eventos-kubernetes"}', "")], 10, 53, w=14, kind="logs", ds="loki")
+P.append({"type": "row", "title": "Entrada, TLS y seguridad", "gridPos": {"x": 0, "y": 60, "w": 24, "h": 1}})
+panel("Traefik: solicitudes/s por entrypoint y código", [('sum by (entrypoint, code) (rate(traefik_entrypoint_requests_total[1m]))', "{{entrypoint}} {{code}}")], 0, 61, w=9, unit="reqps")
+panel("Traefik: réplicas de la entrada arriba", [('sum(up{job="traefik/traefik"})', "réplicas up")], 9, 61, w=4, kind="stat")
+panel("Días para expirar cada certificado TLS", [('min by (name) (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400', "{{name}}")], 13, 61, w=5, kind="stat", unit="none",
+      umbrales=[{"color": "red", "value": None}, {"color": "yellow", "value": 7}, {"color": "green", "value": 30}])
+panel("Rechazos observables (401 / 403 / 429)", [('sum by (status) (rate(redalimenta_http_requests_total{status=~"401|403|429"}[5m]))', "{{status}}")], 18, 61, w=6, unit="reqps")
+P.append({"type": "row", "title": "PostgreSQL (detalle) y respaldos", "gridPos": {"x": 0, "y": 68, "w": 24, "h": 1}})
+panel("PostgreSQL: duración máxima de transacción", [('max by (state) (pg_stat_activity_max_tx_duration{datname="redalimenta"})', "{{state}}")], 0, 69, w=5, unit="s")
+panel("PostgreSQL: conexiones / máximo", [('sum(pg_stat_database_numbackends{datname="redalimenta"})', "en uso"), ('max(pg_settings_max_connections)', "max_connections")], 5, 69, w=5)
+panel("Respaldos: Jobs exitosos / fallidos", [(f'sum(kube_job_status_succeeded{{{NS},job_name=~"respaldo.*"}})', "exitosos"),
+                                             (f'sum(kube_job_status_failed{{{NS},job_name=~"respaldo.*"}}) or vector(0)', "fallidos")], 10, 69, w=3, kind="stat")
+panel("Respaldos: horas desde la última ejecución", [(f'(time() - max(kube_cronjob_status_last_schedule_time{{{NS},cronjob="respaldo"}})) / 3600', "horas")], 13, 69, w=3, kind="stat", unit="h")
+panel("Respaldos: tamaño por motor", [('max by (motor) (max_over_time({namespace="redalimenta", app="respaldo"} |= "motor" | json | unwrap bytes [26h]))', "{{motor}}")], 16, 69, w=4, ds="loki", unit="bytes")
+panel("Respaldos: duración por motor (s)", [('max by (motor) (max_over_time({namespace="redalimenta", app="respaldo"} |= "motor" | json | unwrap segundos [26h]))', "{{motor}}")], 20, 69, w=4, ds="loki", unit="s")
 
 dash = {"title": "RedAlimenta - Operación", "uid": "redalimenta-op", "timezone": "browser", "schemaVersion": 39,
         "refresh": "10s", "time": {"from": "now-30m", "to": "now"}, "panels": P, "tags": ["redalimenta"]}

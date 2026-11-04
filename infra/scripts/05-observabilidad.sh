@@ -18,5 +18,5 @@ $H upgrade --install alloy grafana/alloy -n monitoring --version $ALLOY_CHART -f
 # cert-manager expone métricas de expiración de certificados
 $H upgrade cert-manager jetstack/cert-manager -n cert-manager --version $CERT_MANAGER_CHART --reuse-values \
    --set prometheus.servicemonitor.enabled=true --wait
-kubectl --context $CTX apply -f "$R/observabilidad/dashboards/"
+kubectl --context $CTX apply -f "$R/observabilidad/dashboards/" -f "$R/observabilidad/monitores/"
 kubectl --context $CTX -n monitoring get pods

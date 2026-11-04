@@ -52,6 +52,13 @@ alloy:
         }
         forward_to = [loki.write.default.receiver]
       }
+      // Eventos de Kubernetes del namespace de la app (Pending, reinicios, desalojos, escalado del HPA).
+      // Cada réplica de Alloy los lee; Loki descarta las líneas idénticas (misma marca de tiempo y etiquetas).
+      loki.source.kubernetes_events "eventos" {
+        namespaces = ["redalimenta"]
+        job_name   = "eventos-kubernetes"
+        forward_to = [loki.write.default.receiver]
+      }
       loki.write "default" {
         endpoint {
           url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
