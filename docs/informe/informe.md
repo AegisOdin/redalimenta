@@ -419,6 +419,10 @@ Las reglas exportadas están en `infra/firewall/export-iptables-prod-server.txt`
 
 En GitHub Actions (`.github/workflows/ci.yml`) la promoción a prod requiere la aprobación del environment `produccion`.
 
+**Ejecución real en GitHub Actions.** El repositorio está publicado en `https://github.com/AegisOdin/redalimenta`. La primera ejecución falló en el job `imagenes` porque GHCR exige nombres de repositorio en minúsculas y el propietario es `AegisOdin`. Se corrigió convirtiendo el nombre del registro a minúsculas dentro del paso (commit `e84943c`). La segunda ejecución pasó completa: `pruebas` (22 aprobadas, 1 omitida), `manifiestos` (kubeconform) e `imagenes` (build, Trivy sin hallazgos HIGH/CRITICAL corregibles y push a GHCR por digest). El job `promover-produccion` solo corre con etiquetas `v*` y queda detenido hasta que un revisor apruebe el environment `produccion`. Evidencia: `docs/evidencias/ci/github-actions.txt`.
+
+![Ejecución exitosa del pipeline en GitHub Actions](docs/capturas/ci-01-github-actions-exito.png)
+
 **Actualización y rollback (E12).** La 1.1.0 incluye la migración 0002, compatible hacia atrás porque solo agrega el índice `ix_outbox_creado_en`. Por eso `kubectl rollout undo` a 1.0.0 no requiere revertir el esquema. Plan de reversión de esquema si algún día fuera incompatible: `alembic downgrade 0001` con la cuenta de migración, antes del rollback de imagen y en una ventana de mantenimiento.
 
 **Administración de accesos.**

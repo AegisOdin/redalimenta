@@ -1,0 +1,33 @@
+# Ejecución de GitHub Actions 2026-11-04T04:24:40Z
+## Ejecución 1 (41772601095): FALLÓ en 'imagenes'
+
+X main ci · 41772601095
+Triggered via push about 4 minutes ago
+
+JOBS
+✓ pruebas in 58s (ID 126385523736)
+✓ manifiestos in 10s (ID 126385523855)
+X imagenes in 9s (ID 126385852220)
+  ✓ Set up job
+  ✓ Run actions/checkout@v5
+  ✓ Run docker/login-action@v3
+  X Run for c in backend frontend; do
+ERROR: failed to build: invalid tag "ghcr.io/AegisOdin/redalimenta-backend:87192e7": repository name must be lowercase
+
+Corrección: nombre del registro en minúsculas (commit e84943c)
+
+## Ejecución 2 (41772759298): ÉXITO
+
+✓ main ci · 41772759298
+Triggered via push about 2 minutes ago
+
+JOBS
+✓ pruebas in 55s (ID 126386030530)
+✓ manifiestos in 9s (ID 126386030832)
+✓ imagenes in 1m18s (ID 126386343392)
+- promover-produccion (ID 126386775427)
+
+## Trivy y digests publicados en GHCR
+e84943c: digest: sha256:82fc2feb4d1be4abb2674d22e351252e8deac430d0eb827fc11be42416578340 size: 2618
+e84943c: digest: sha256:9f3419d214fe1412d7a2d00def889a2abeefa5c2ce9db5ef1b1d029d2b6a9f06 size: 3031
+22 passed, 1 skipped in 1.18s
